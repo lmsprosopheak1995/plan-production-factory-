@@ -295,7 +295,7 @@ $('shg').addEventListener('input',e=>{if(e.target.classList.contains('shi'))$('s
 $('shg').addEventListener('change',e=>{if(e.target.id==='shd'&&e.target.value)shd=e.target.value});
 $('shc').onclick=()=>$('shdlg').close();
 /* ===== Cutting Piece / Total (Excel-style) ===== */
-let cpId=null,cpd=todayStr;
+let cpId=null,cpT=null,cpd=todayStr;
 const zsOf=x=>(x.sz||[]).length?x.sz:[{n:'',q:x.oq}];
 const gtOf=x=>{const g=x.gt||'set';return g==='set'?['top','pants']:[g]};
 const dlQ=(x,z)=>x.dl&&x.dl[z.n]!=null?+x.dl[z.n]:z.q;
@@ -317,15 +317,15 @@ function vsUpd(x,box,t){
 /* --- Cutting Piece list --- */
 function renderCP(){
  const fl=$('cln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
- $('cprows').innerHTML=r.map(x=>{const c=cutOf(x),q=tcpOf(x),d=q-x.oq;
-  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${gl[x.gt||'set']}</td><td class="n">${x.oq.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td><button class="a" data-cp="${x.id}">បញ្ចូល / Enter</button></td></tr>`}).join('');
+ $('cprows').innerHTML=r.flatMap(x=>gtOf(x).map(t=>{const c=cutT(x,t),q=tcpS(x,t),d=q-x.oq;
+  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${tl[t]}</td><td class="n">${x.oq.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td><button class="a" data-cp="${x.id}" data-t="${t}">បញ្ចូល / Enter</button></td></tr>`})).join('');
  $('cpempty').hidden=r.length>0;
 }
 $('cln').addEventListener('change',renderCP);
-$('cprows').addEventListener('click',e=>{const b=e.target.closest('button[data-cp]');if(!b)return;cpId=+b.dataset.cp;cpd=todayStr;renderCPd();$('cpdlg').showModal()});
+$('cprows').addEventListener('click',e=>{const b=e.target.closest('button[data-cp]');if(!b)return;cpId=+b.dataset.cp;cpT=b.dataset.t;cpd=todayStr;renderCPd();$('cpdlg').showModal()});
 
 /* --- Cutting Piece dialog --- */
-const cpKpi=x=>{const q=tcpOf(x),r=q-x.oq;return `<div class="kpi"><small>ចំនួនកម្មង់ / Order</small><b>${x.oq.toLocaleString()}</b></div><div class="kpi"><small>ចំនួនកាត់ / Cutting</small><b>${cutOf(x).toLocaleString()}</b></div><div class="kpi"><small>ទទួលបំណែក / Take Cutting Piece</small><b>${q.toLocaleString()}</b><b class="${r<0?'bad':'ok'}" style="font-size:1.1rem">${r<0?'ខ្វះ / Short '+(-r).toLocaleString():(r>0?'លើស / Over '+r.toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`};
+const cpKpi=(x,ts)=>(ts||gtOf(x)).map(t=>{const q=tcpS(x,t),r=q-x.oq;return `<div class="kpi"><small>${tl[t]} · ចំនួនកម្មង់ / Order ${x.oq.toLocaleString()}</small><small>កាត់ / Cutting ${cutT(x,t).toLocaleString()}</small><small>ទទួលបំណែក / Take Cutting Piece</small><b>${q.toLocaleString()}</b><b class="${r<0?'bad':'ok'}" style="font-size:1.1rem">${r<0?'ខ្វះ / Short '+(-r).toLocaleString():(r>0?'លើស / Over '+r.toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`}).join('');
 function cpPaint(x,box,t){
  const zs=zsOf(x),put=(c,s,v,sg)=>{const el=box.querySelector(`[data-c="${c}"][data-s="${s}"]`);if(!el)return;el.textContent=sg===0?'—':(sg?fS(v):v.toLocaleString());el.className='n'+(sg?(v<0?' bad':' ok'):'')};
  let pl=0,ct=0,tc=0,dl=0;const ctt=cutT(x,t);
@@ -357,9 +357,9 @@ function cpSec(x,t){
 }
 function renderCPd(){
  const x=data.find(v=>v.id===cpId);if(!x)return;
- const ts=gtOf(x);
+ const ts=cpT&&gtOf(x).includes(cpT)?[cpT]:gtOf(x);
  $('cpt').textContent='ទទួលបំណែកកាត់ / Take Cutting Piece — '+x.style+' (ក្រុម '+x.line+')';
- $('cpsum').innerHTML=cpKpi(x);
+ $('cpsum').innerHTML=cpKpi(x,ts);
  $('cpsec').innerHTML=ts.map(t=>cpSec(x,t)).join('');
  $('cpsec').querySelectorAll('.tsecx').forEach((b,i)=>cpPaint(x,b,ts[i]));
 }
@@ -371,7 +371,7 @@ $('cpsec').addEventListener('change',e=>{
   const k=i.dataset.k,o=x[k]=x[k]||{};
   if(k==='cut'){const m=o[t]=o[t]||{};m[s]=+i.value||0}
   else if(i.value==='')delete o[s];else o[s]=+i.value||0;
-  save();cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x);render();return
+  save();cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x,cpT&&gtOf(x).includes(cpT)?[cpT]:null);render();return
  }
  if(!i.classList.contains('gi'))return;
  const d=i.dataset.d||cpd,q=+i.value||0,dt=dT(x);x.tcp=x.tcp||[];
@@ -379,7 +379,7 @@ $('cpsec').addEventListener('change',e=>{
  if(q>0){if(ex)ex.q=q;else x.tcp.push({id:Date.now()+x.tcp.length,date:d,s,q,t})}else if(ex)x.tcp=x.tcp.filter(v=>v!==ex);
  save();
  const tr=i.closest('tr');tr.querySelector('.rt').textContent=[...tr.querySelectorAll('.gi')].reduce((a,n)=>a+(+n.value||0),0).toLocaleString();
- cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x);render();
+ cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x,cpT&&gtOf(x).includes(cpT)?[cpT]:null);render();
 });
 $('cpsec').addEventListener('click',e=>{
  const b=e.target.closest('button[data-del]');if(!b)return;
@@ -396,22 +396,21 @@ function renderTotal(){
  const fl=$('tln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
  const pc=(a,b)=>b?Math.round(a/b*100)+'%':'—';
  const g3=(q,o)=>{const d=q-o;return `<td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td class="n">${pc(q,o)}</td>`};
- const T={o:0,c:0,p:0,s:0};totRows=[];
- const body=r.map(x=>{
-  const c=cutOf(x),p=tcpOf(x),s=cqOf(x),clr=(x.clr||[]).map(k=>k.n).join(', ');
-  T.o+=x.oq;T.c+=c;T.p+=p;T.s+=s;
-  totRows.push([x.line,x.buyer,x.ut,x.style,clr,x.dd||'',x.oq,c,c-x.oq,pc(c,x.oq),p,p-x.oq,pc(p,x.oq),s,s-x.oq,pc(s,x.oq)]);
-  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${esc(clr)||'—'}</td><td>${x.dd||'—'}</td><td class="n">${x.oq.toLocaleString()}</td>${g3(c,x.oq)}${g3(p,x.oq)}${g3(s,x.oq)}<td></td></tr>`}).join('');
- const foot=r.length?`<tr class="tt"><td>សរុប / TOTAL</td><td></td><td></td><td></td><td></td><td></td><td class="n">${T.o.toLocaleString()}</td>${g3(T.c,T.o)}${g3(T.p,T.o)}${g3(T.s,T.o)}<td></td></tr>`:'';
+ const T={top:{o:0,c:0,p:0,s:0,n:0},pants:{o:0,c:0,p:0,s:0,n:0}};totRows=[];
+ const body=r.flatMap(x=>gtOf(x).map(t=>{
+  const c=cutT(x,t),p=tcpS(x,t),s=cqT(x,t),clr=(x.clr||[]).map(k=>k.n).join(', '),a=T[t];
+  a.o+=x.oq;a.c+=c;a.p+=p;a.s+=s;a.n++;
+  totRows.push([x.line,x.buyer,x.ut,x.style,t==='top'?'Top':'Pants',clr,x.dd||'',x.oq,c,c-x.oq,pc(c,x.oq),p,p-x.oq,pc(p,x.oq),s,s-x.oq,pc(s,x.oq)]);
+  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${tl[t]}</td><td>${esc(clr)||'—'}</td><td>${x.dd||'—'}</td><td class="n">${x.oq.toLocaleString()}</td>${g3(c,x.oq)}${g3(p,x.oq)}${g3(s,x.oq)}<td></td></tr>`})).join('');
+ const foot=['top','pants'].filter(t=>T[t].n).map(t=>{const a=T[t];return `<tr class="tt"><td>សរុប / TOTAL</td><td></td><td></td><td></td><td>${tl[t]}</td><td></td><td></td><td class="n">${a.o.toLocaleString()}</td>${g3(a.c,a.o)}${g3(a.p,a.o)}${g3(a.s,a.o)}<td></td></tr>`}).join('');
  $('trows').innerHTML=body+foot;
  $('tempty').hidden=r.length>0;
  $('tupd').textContent=todayStr;
- $('tk1').textContent=T.o.toLocaleString();$('tk2').textContent=T.c.toLocaleString();$('tk3').textContent=T.p.toLocaleString();$('tk4').textContent=T.s.toLocaleString();
 }
 $('tln').addEventListener('change',renderTotal);
 $('tcsv').onclick=()=>{
  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
- const hd=['Line','Buyer','UT#','Style#','Color','D/D','Order Qty','Cutting QTY','Cutting Balance','Cutting %','Take Cutting Piece','TCP Balance','TCP %','Sewing QTY','Sewing Balance','Sewing %'];
+ const hd=['Line','Buyer','UT#','Style#','Type','Color','D/D','Order Qty','Cutting QTY','Cutting Balance','Cutting %','Take Cutting Piece','TCP Balance','TCP %','Sewing QTY','Sewing Balance','Sewing %'];
  const l=[hd.map(q).join(',')].concat(totRows.map(r=>r.map(q).join(',')));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+l.join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='production-summary-'+todayStr+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
