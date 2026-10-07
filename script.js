@@ -87,7 +87,7 @@ $('rows').addEventListener('click',e=>{
  if(a==='del'){if(!confirm('លុបកម្មង់នេះជាអចិន្ត្រៃយ៍? / Delete this order permanently?'))return;data=data.filter(v=>v.id!==id);if(editId===id)stopEdit()}
  else if(a==='arch'){x.arch=true;if(editId===id)stopEdit()}
  else if(a==='restore'){x.arch=false}
- else if(a==='issue'){issId=id;renderIss();$('idlg').showModal();return}
+ else if(a==='issue'){issId=id;issMode='fabric';renderIss();$('idlg').showModal();return}
  else if(a==='edit'){editId=id;if(x.line&&![...$('line').options].some(o=>o.value===x.line))$('line').add(new Option(x.line,x.line));['line','buyer','ut','style','gt','oq','iq','cq','wk','dq','cd','od','dd','st','rm'].forEach(k=>$(k).value=x[k]==null?'':x[k]);
   $('gt').value=x.gt||'set';$('crows').innerHTML='';(x.clr||[]).forEach(c=>addClr(c.n,c.q));fillSz(x.sz);$('sb').textContent='ធ្វើបច្ចុប្បន្នភាព / Update';$('ft').textContent='កែកម្មង់ / Edit Order';$('cb').hidden=false;$('dlg').showModal();return}
  save();lineOpts();render();
@@ -102,7 +102,7 @@ $('szg').innerHTML=SIZES.map(n=>`<label>${n}<input type="number" min="0" data-sz
 const readSz=()=>[...$('szg').querySelectorAll('input')].map(i=>({n:i.dataset.sz,q:+i.value||0})).filter(z=>z.q>0);
 const fillSz=a=>{$('szg').querySelectorAll('input').forEach(i=>{const z=(a||[]).find(v=>v.n===i.dataset.sz);i.value=z?z.q:''})};
 $('szg').addEventListener('input',()=>{const t=readSz().reduce((a,z)=>a+z.q,0);if(t>0)$('oq').value=t});
-let issId=null;
+let issId=null,issMode='daily';
 const cqKpi=x=>{const q=cqOf(x),r=x.oq-q;return `<div class="kpi"><small>ដេរបញ្ចប់ / Completed · កម្មង់ ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`};
 let gd=todayStr;
 const fmN=n=>n>0?n.toLocaleString():(n<0?'+'+(-n).toLocaleString():'✓');
@@ -123,7 +123,7 @@ $('dday').value=todayStr;
 $('dln').innerHTML='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
 $('dday').addEventListener('change',renderDaily);$('dln').addEventListener('change',renderDaily);
 $('drows').addEventListener('click',e=>{
- const b=e.target.closest('button[data-id]');if(!b)return;const id=+b.dataset.id;issId=id;
+ const b=e.target.closest('button[data-id]');if(!b)return;const id=+b.dataset.id;issId=id;issMode='daily';
  gd=$('dday').value||todayStr;
  renderIss();$('idlg').showModal();
 });
@@ -136,7 +136,7 @@ $('side').addEventListener('click',e=>{const b=e.target.closest('button[data-v]'
 const lnOpts='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
 $('fday').value=todayStr;$('fln').innerHTML=lnOpts;
 $('fday').addEventListener('change',renderFabric);$('fln').addEventListener('change',renderFabric);
-function openIss(id,d){issId=id;gd=d;renderIss();$('idlg').showModal()}
+function openIss(id,d){issId=id;issMode='fabric';gd=d;renderIss();$('idlg').showModal()}
 function renderFabric(){
  const d=$('fday').value||todayStr,fl=$('fln').value,r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl));let t=0,p=0;
  $('frows').innerHTML=r.map(x=>{
@@ -165,9 +165,9 @@ function secHtml(x,t){
  const ti=issSum(x,t),tc=cqT(x,t);
  const th=z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`;
  const sm=(l,e,f,tt,c,s)=>`<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${s?bc(v):''}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${s?fmN(v):v.toLocaleString()}</td>`}).join('')}<td class="n ${s?bc(tt):''}"${c?` data-c="${c}" data-s="*"`:''}>${s?fmN(tt):tt.toLocaleString()}</td></tr>`;
- const sx=(l,e,f,tt,c,sg)=>{const fm=v=>sg===undefined?v.toLocaleString():(sg?fS(v):'—'),cl=v=>sg?(v<0?'bad':'ok'):'';return `<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${cl(v)}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${fm(v)}</td>`}).join('')}<td class="n ${cl(tt)}"${c?` data-c="${c}" data-s="*"`:''}>${fm(tt)}</td></tr>`};
+ const fab=issMode==='fabric';const sx=(l,e,f,tt,c,sg)=>{const fm=v=>sg===undefined?v.toLocaleString():(sg?fS(v):'—'),cl=v=>sg?(v<0?'bad':'ok'):'';return `<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${cl(v)}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${fm(v)}</td>`}).join('')}<td class="n ${cl(tt)}"${c?` data-c="${c}" data-s="*"`:''}>${fm(tt)}</td></tr>`};
  const tcT=tcpS(x,t),cuT=cutT(x,t);
- const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>${sm('ចំនួនកម្មង់','ORDER',z=>z.q,x.oq)}${sx('ចំនួនដឹកជញ្ជូន','DELIVERY',z=>dlQ(x,z),zs.reduce((a,z)=>a+dlQ(x,z),0))}${sx('ចំនួនកាត់','CUTTING QTY',z=>cutQ(x,t,z.n),cuT)}${sx('ខ្វះ/លើសកាត់','CUTTING BALANCE',z=>cutQ(x,t,z.n)-z.q,cuT-x.oq,'',cuT>0)}${sx('ទទួលបំណែកកាត់','TAKE CUTTING PIECE',z=>tcpS(x,t,z.n),tcT)}${sm('បើកមកដេរ','ISSUED',z=>isn(z.n),ti)}${sm('ខ្វះបើក','ISSUE SHORT',z=>z.q-isn(z.n),x.oq-ti,'',1)}${sm('ដេរបញ្ចប់','SEWN',z=>sn(z.n),tc,'done')}${sx('ដេរ ធៀប បំណែកកាត់','SEWN − TCP',z=>sn(z.n)-tcpS(x,t,z.n),tc-tcT,'vs',tcT>0)}${sm('ខ្វះដេរ','SEWING BALANCE',z=>z.q-sn(z.n),x.oq-tc,'bal',1)}</tbody></table>`;
+ const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>${sm('ចំនួនកម្មង់','ORDER',z=>z.q,x.oq)}${fab?`${sm('បើកមកដេរ','ISSUED',z=>isn(z.n),ti)}${sm('ខ្វះបើក','ISSUE SHORT',z=>z.q-isn(z.n),x.oq-ti,'',1)}`:`${sx('ចំនួនដឹកជញ្ជូន','DELIVERY',z=>dlQ(x,z),zs.reduce((a,z)=>a+dlQ(x,z),0))}${sx('ចំនួនកាត់','CUTTING QTY',z=>cutQ(x,t,z.n),cuT)}${sx('ខ្វះ/លើសកាត់','CUTTING BALANCE',z=>cutQ(x,t,z.n)-z.q,cuT-x.oq,'',cuT>0)}${sx('ទទួលបំណែកកាត់','TAKE CUTTING PIECE',z=>tcpS(x,t,z.n),tcT)}${sm('ដេរបញ្ចប់','SEWN',z=>sn(z.n),tc,'done')}${sx('ដេរ ធៀប បំណែកកាត់','SEWN − TCP',z=>sn(z.n)-tcpS(x,t,z.n),tc-tcT,'vs',tcT>0)}${sm('ខ្វះដេរ','SEWING BALANCE',z=>z.q-sn(z.n),x.oq-tc,'bal',1)}`}</tbody></table>`;
  const iform=`<form class="isf" data-t="${t}"><label>ថ្ងៃ / Date<input type="date" name="date" value="${gd}" required></label>${hc?`<label>ពណ៌ / Color<select name="color">${x.clr.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select></label>`:''}${has?`<label>ទំហំ / Size<select name="size"><option value="">ទាំងអស់ / All</option>${x.sz.map(z=>`<option>${esc(z.n)}</option>`).join('')}</select></label>`:''}<label>ចំនួនបើក / Qty<input type="number" name="qty" min="1" required></label><button type="submit">បន្ថែម / Add</button></form>`;
  const ct=hc?`<div class="scroll rep"><table style="min-width:0"><thead><tr><th>ពណ៌<span>Color</span></th><th class="n">កម្មង់<span>Order</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th></tr></thead><tbody>${x.clr.map(c=>{const q=issSum(x,t,c.n),r=c.q-q;return `<tr><td>${esc(c.n)}</td><td class="n">${c.q.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${bc(r)}">${fmN(r)}</td></tr>`}).join('')}</tbody></table></div>`:'';
  const hist=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody>${I.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<tr><td>${e.date}</td><td>${esc(e.c||'—')}</td><td>${esc(e.s||'—')}</td><td class="n">${e.q.toLocaleString()}</td><td><button class="x" data-eid="${e.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">មិនទាន់មានកំណត់ត្រាបើក / No issues yet</td></tr>'}</tbody></table>`;
@@ -175,15 +175,17 @@ function secHtml(x,t){
  const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:0};
  const rt=d=>zs.reduce((a,z)=>a+val(d,z.n),0).toLocaleString();
  const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>`<td class="n">${val(d,z.n)||'—'}</td>`).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="a" data-edit="${esc(d)}" data-t="${t}">កែ</button><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')||`<tr><td colspan="${zs.length+3}" class="empty">មិនទាន់មានទិន្នន័យ / No entries yet</td></tr>`}</tbody></table>`;
- return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div>
- <h4 class="tsh">① បើកមកដេរ / Issue to sewing</h4>${iform}${ct}<div class="scroll rep">${hist}</div>
- <h4 class="tsh">② ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily sewing <button type="button" class="a" data-add="${t}">+ បញ្ចូល / Add</button></h4><div class="scroll rep">${grid}</div></div>`;
+ return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div>${fab?`
+ <h4 class="tsh">① បើកមកដេរ / Issue to sewing</h4>${iform}${ct}<div class="scroll rep">${hist}</div>`:`
+ <h4 class="tsh">② ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily sewing <button type="button" class="a" data-add="${t}">+ បញ្ចូល / Add</button></h4><div class="scroll rep">${grid}</div>`}</div>`;
 }
 function renderIss(){
  const x=data.find(v=>v.id===issId);if(!x)return;
  const g=x.gt||'set',ts=g==='set'?['top','pants']:[g];
- $('it').textContent='ទិន្នន័យប្រចាំថ្ងៃ / Daily Entry — '+x.style+' (ក្រុម '+x.line+')';
- $('isum').innerHTML=cqKpi(x)+ts.map(t=>{const q=issSum(x,t),r=x.oq-q;return `<div class="kpi"><small>${tl[t]} · កម្មង់ / Order ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><small>បើកបាន / Issued</small><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`}).join('');
+ $('it').textContent=(issMode==='fabric'?'បើកក្រណាត់ / Fabric Issue':'ទិន្នន័យប្រចាំថ្ងៃ / Daily Entry')+' — '+x.style+' (ក្រុម '+x.line+')';
+ const issK=ts.map(t=>{const q=issSum(x,t),r=x.oq-q;return `<div class="kpi"><small>${tl[t]} · កម្មង់ / Order ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><small>បើកបាន / Issued</small><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`}).join('');
+ const sewK=ts.map(t=>{const q=cqT(x,t),r=x.oq-q;return `<div class="kpi"><small>${tl[t]} · កម្មង់ / Order ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><small>ដេរបញ្ចប់ / Sewn</small><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`}).join('');
+ $('isum').innerHTML=issMode==='fabric'?issK:sewK;
  $('tsec').innerHTML=ts.map(t=>secHtml(x,t)).join('');
 }
 function afterLog(x){$('isum').firstElementChild.outerHTML=cqKpi(x);render()}
