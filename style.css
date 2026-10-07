@@ -66,3 +66,10 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 #idlg table{font-size:1rem}
 #idlg th,#idlg td{padding:10px 16px}
 #idlg .kpi b{font-size:1.8rem}
+
+.rep .sub{display:block;color:var(--mute);font-size:.72rem;font-weight:400}
+.rep tr.sm td{background:var(--bg);font-weight:600}
+.rep tr.dh td{background:var(--bg);color:var(--mute);font-size:.8rem;border-bottom:2px solid var(--line)}
+.rep tr.ent td{background:var(--run)}
+#idlg .rep input.gi{width:96px;text-align:right;padding:7px}
+#idlg .rep #gdate{width:160px;padding:7px}
