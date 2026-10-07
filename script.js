@@ -66,7 +66,7 @@ function render(){
   <td>${x.cd||''}</td><td>${x.od||''}</td><td>${x.dd||''}</td><td>${esc(x.rm)}</td>
   <td>${view?`<button class="a" data-a="restore" data-id="${x.id}">ស្តារ</button>`:`<button class="a" data-a="edit" data-id="${x.id}">កែ</button><button class="a" data-a="arch" data-id="${x.id}">ប័ណ្ណសារ</button>`}<button class="x" data-a="del" data-id="${x.id}">លុប</button></td></tr>`}).join('');
  $('empty').hidden=r.length>0;
- $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();renderShip();fit();
+ $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();renderShip();renderCP();renderTotal();fit();
 }
 $('f').addEventListener('submit',e=>{
  e.preventDefault();
@@ -130,7 +130,7 @@ $('drows').addEventListener('click',e=>{
 function fit(){}
 window.addEventListener('resize',fit);window.addEventListener('load',fit);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
-const views=['pv','dv','fv','lv','rv','ev','sv'];
+const views=['pv','dv','fv','cv','lv','rv','tv','ev','sv'];
 function go(v){views.forEach(k=>$(k).hidden=k!==v);document.querySelectorAll('#side button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();window.scrollTo(0,0)}
 $('side').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)go(b.dataset.v)});
 const lnOpts='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
@@ -165,7 +165,9 @@ function secHtml(x,t){
  const ti=issSum(x,t),tc=cqT(x,t);
  const th=z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`;
  const sm=(l,e,f,tt,c,s)=>`<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${s?bc(v):''}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${s?fmN(v):v.toLocaleString()}</td>`}).join('')}<td class="n ${s?bc(tt):''}"${c?` data-c="${c}" data-s="*"`:''}>${s?fmN(tt):tt.toLocaleString()}</td></tr>`;
- const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>${sm('ចំនួនកម្មង់','ORDER',z=>z.q,x.oq)}${sm('បើកមកដេរ','ISSUED',z=>isn(z.n),ti)}${sm('ខ្វះបើក','ISSUE SHORT',z=>z.q-isn(z.n),x.oq-ti,'',1)}${sm('ដេរបញ្ចប់','SEWN',z=>sn(z.n),tc,'done')}${sm('ខ្វះដេរ','SEWING BALANCE',z=>z.q-sn(z.n),x.oq-tc,'bal',1)}</tbody></table>`;
+ const sx=(l,e,f,tt,c,sg)=>{const fm=v=>sg===undefined?v.toLocaleString():(sg?fS(v):'—'),cl=v=>sg?(v<0?'bad':'ok'):'';return `<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${cl(v)}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${fm(v)}</td>`}).join('')}<td class="n ${cl(tt)}"${c?` data-c="${c}" data-s="*"`:''}>${fm(tt)}</td></tr>`};
+ const tcT=tcpS(x,t),cuT=cutT(x,t);
+ const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>${sm('ចំនួនកម្មង់','ORDER',z=>z.q,x.oq)}${sx('ចំនួនដឹកជញ្ជូន','DELIVERY',z=>dlQ(x,z),zs.reduce((a,z)=>a+dlQ(x,z),0))}${sx('ចំនួនកាត់','CUTTING QTY',z=>cutQ(x,t,z.n),cuT)}${sx('ខ្វះ/លើសកាត់','CUTTING BALANCE',z=>cutQ(x,t,z.n)-z.q,cuT-x.oq,'',cuT>0)}${sx('ទទួលបំណែកកាត់','TAKE CUTTING PIECE',z=>tcpS(x,t,z.n),tcT)}${sm('បើកមកដេរ','ISSUED',z=>isn(z.n),ti)}${sm('ខ្វះបើក','ISSUE SHORT',z=>z.q-isn(z.n),x.oq-ti,'',1)}${sm('ដេរបញ្ចប់','SEWN',z=>sn(z.n),tc,'done')}${sx('ដេរ ធៀប បំណែកកាត់','SEWN − TCP',z=>sn(z.n)-tcpS(x,t,z.n),tc-tcT,'vs',tcT>0)}${sm('ខ្វះដេរ','SEWING BALANCE',z=>z.q-sn(z.n),x.oq-tc,'bal',1)}</tbody></table>`;
  const iform=`<form class="isf" data-t="${t}"><label>ថ្ងៃ / Date<input type="date" name="date" value="${gd}" required></label>${hc?`<label>ពណ៌ / Color<select name="color">${x.clr.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select></label>`:''}${has?`<label>ទំហំ / Size<select name="size"><option value="">ទាំងអស់ / All</option>${x.sz.map(z=>`<option>${esc(z.n)}</option>`).join('')}</select></label>`:''}<label>ចំនួនបើក / Qty<input type="number" name="qty" min="1" required></label><button type="submit">បន្ថែម / Add</button></form>`;
  const ct=hc?`<div class="scroll rep"><table style="min-width:0"><thead><tr><th>ពណ៌<span>Color</span></th><th class="n">កម្មង់<span>Order</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th></tr></thead><tbody>${x.clr.map(c=>{const q=issSum(x,t,c.n),r=c.q-q;return `<tr><td>${esc(c.n)}</td><td class="n">${c.q.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${bc(r)}">${fmN(r)}</td></tr>`}).join('')}</tbody></table></div>`:'';
  const hist=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody>${I.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<tr><td>${e.date}</td><td>${esc(e.c||'—')}</td><td>${esc(e.s||'—')}</td><td class="n">${e.q.toLocaleString()}</td><td><button class="x" data-eid="${e.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">មិនទាន់មានកំណត់ត្រាបើក / No issues yet</td></tr>'}</tbody></table>`;
@@ -192,7 +194,7 @@ function updRep(x,i){
  const zs=(x.sz||[]).length?x.sz:[{n:'',q:x.oq}];
  const set=(c,s,tx,r)=>{const el=box.querySelector(`[data-c="${c}"][data-s="${s}"]`);if(el){el.textContent=tx;if(r!=null)el.className='n '+(r>0?'bad':'ok')}};
  zs.forEach(z=>{const d=(x.log||[]).filter(e=>(e.t||dt)===t&&(e.s||'')===z.n).reduce((a,e)=>a+e.q,0);set('done',z.n,d.toLocaleString());set('bal',z.n,fmN(z.q-d),z.q-d)});
- const tc=cqT(x,t);set('done','*',tc.toLocaleString());set('bal','*',fmN(x.oq-tc),x.oq-tc);afterLog(x);
+ const tc=cqT(x,t);set('done','*',tc.toLocaleString());set('bal','*',fmN(x.oq-tc),x.oq-tc);vsUpd(x,box,t);afterLog(x);
 }
 $('tsec').addEventListener('change',e=>{
  const i=e.target,x=data.find(v=>v.id===issId);if(!x)return;
@@ -292,5 +294,128 @@ $('shg').addEventListener('click',e=>{
 $('shg').addEventListener('input',e=>{if(e.target.classList.contains('shi'))$('sht2').textContent=[...$('shg').querySelectorAll('.shi')].reduce((a,i)=>a+(+i.value||0),0).toLocaleString()});
 $('shg').addEventListener('change',e=>{if(e.target.id==='shd'&&e.target.value)shd=e.target.value});
 $('shc').onclick=()=>$('shdlg').close();
+/* ===== Cutting Piece / Total (Excel-style) ===== */
+let cpId=null,cpd=todayStr;
+const zsOf=x=>(x.sz||[]).length?x.sz:[{n:'',q:x.oq}];
+const gtOf=x=>{const g=x.gt||'set';return g==='set'?['top','pants']:[g]};
+const dlQ=(x,z)=>x.dl&&x.dl[z.n]!=null?+x.dl[z.n]:z.q;
+const cutQ=(x,t,s)=>+(((x.cut||{})[t]||{})[s])||0;
+const tcpS=(x,t,s)=>(x.tcp||[]).filter(e=>(e.t||dT(x))===t&&(s==null||(e.s||'')===s)).reduce((a,e)=>a+e.q,0);
+const cutT=(x,t)=>zsOf(x).reduce((a,z)=>a+cutQ(x,t,z.n),0);
+const minT=(x,f)=>{const ts=gtOf(x);return ts.length===2?Math.min(f(ts[0]),f(ts[1])):f(ts[0])};
+const cutOf=x=>minT(x,t=>cutT(x,t)),tcpOf=x=>minT(x,t=>tcpS(x,t));
+const fS=n=>n>0?'+'+n.toLocaleString():n.toLocaleString();
+const gl={top:'អាវ / Top',pants:'ខោ / Pants',set:'អាវ+ខោ / Set'};
+$('cln').innerHTML=lnOpts;$('tln').innerHTML=lnOpts;
+
+function vsUpd(x,box,t){
+ const on=tcpS(x,t)>0,put=(s,v)=>{const el=box.querySelector(`[data-c="vs"][data-s="${s}"]`);if(el){el.textContent=on?fS(v):'—';el.className='n '+(on?(v<0?'bad':'ok'):'')}};
+ const sn=s=>(x.log||[]).filter(e=>(e.t||dT(x))===t&&(e.s||'')===s).reduce((a,e)=>a+e.q,0);
+ zsOf(x).forEach(z=>put(z.n,sn(z.n)-tcpS(x,t,z.n)));put('*',cqT(x,t)-tcpS(x,t));
+}
+
+/* --- Cutting Piece list --- */
+function renderCP(){
+ const fl=$('cln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
+ $('cprows').innerHTML=r.map(x=>{const c=cutOf(x),q=tcpOf(x),d=q-x.oq;
+  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${gl[x.gt||'set']}</td><td class="n">${x.oq.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td><button class="a" data-cp="${x.id}">បញ្ចូល / Enter</button></td></tr>`}).join('');
+ $('cpempty').hidden=r.length>0;
+}
+$('cln').addEventListener('change',renderCP);
+$('cprows').addEventListener('click',e=>{const b=e.target.closest('button[data-cp]');if(!b)return;cpId=+b.dataset.cp;cpd=todayStr;renderCPd();$('cpdlg').showModal()});
+
+/* --- Cutting Piece dialog --- */
+const cpKpi=x=>{const q=tcpOf(x),r=q-x.oq;return `<div class="kpi"><small>ចំនួនកម្មង់ / Order</small><b>${x.oq.toLocaleString()}</b></div><div class="kpi"><small>ចំនួនកាត់ / Cutting</small><b>${cutOf(x).toLocaleString()}</b></div><div class="kpi"><small>ទទួលបំណែក / Take Cutting Piece</small><b>${q.toLocaleString()}</b><b class="${r<0?'bad':'ok'}" style="font-size:1.1rem">${r<0?'ខ្វះ / Short '+(-r).toLocaleString():(r>0?'លើស / Over '+r.toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`};
+function cpPaint(x,box,t){
+ const zs=zsOf(x),put=(c,s,v,sg)=>{const el=box.querySelector(`[data-c="${c}"][data-s="${s}"]`);if(!el)return;el.textContent=sg===0?'—':(sg?fS(v):v.toLocaleString());el.className='n'+(sg?(v<0?' bad':' ok'):'')};
+ let pl=0,ct=0,tc=0,dl=0;const ctt=cutT(x,t);
+ zs.forEach(z=>{const c=cutQ(x,t,z.n),k=tcpS(x,t,z.n);pl+=z.q;ct+=c;tc+=k;dl+=dlQ(x,z);
+  put('cb',z.n,c-z.q,ctt?1:0);put('tc',z.n,k);put('tb',z.n,k-z.q,1)});
+ put('cb','*',ct-pl,ctt?1:0);put('tc','*',tc);put('tb','*',tc-pl,1);put('ct','*',ct);put('dt','*',dl);
+}
+function cpSec(x,t){
+ const zs=zsOf(x),has=(x.sz||[]).length>0,L=(x.tcp||[]).filter(e=>(e.t||dT(x))===t);
+ const th=z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`;
+ const lab=(l,e)=>`<td>${l}<span class="sub">${e}</span></td>`;
+ const dc=(c,z)=>`<td class="n" data-c="${c}" data-s="${esc(z.n)}"></td>`;
+ const tcell=c=>`<td class="n" data-c="${c}" data-s="*"></td>`;
+ const calc=(l,e,c)=>`<tr class="sm">${lab(l,e)}${zs.map(z=>dc(c,z)).join('')}${tcell(c)}</tr>`;
+ const inp=(l,e,k,tot,f,ph)=>`<tr class="ent">${lab(l,e)}${zs.map(z=>`<td class="n"><input class="ci" type="number" min="0" data-k="${k}" data-t="${t}" data-s="${esc(z.n)}" value="${f(z)}"${ph?` placeholder="${z.q}"`:''}></td>`).join('')}${tcell(tot)}</tr>`;
+ const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>
+  <tr class="sm">${lab('ចំនួនកម្មង់','PLAN QTY')}${zs.map(z=>`<td class="n">${z.q.toLocaleString()}</td>`).join('')}<td class="n">${zs.reduce((a,z)=>a+z.q,0).toLocaleString()}</td></tr>
+  ${inp('ចំនួនដឹកជញ្ជូន','DELIVERY QTY','dl','dt',z=>x.dl&&x.dl[z.n]!=null?x.dl[z.n]:'',1)}
+  ${inp('ចំនួនកាត់','CUTTING QTY','cut','ct',z=>cutQ(x,t,z.n)||'')}
+  ${calc('ខ្វះ/លើសកាត់','CUTTING BALANCE','cb')}
+  ${calc('ទទួលបំណែកកាត់','TAKE CUTTING PIECE','tc')}
+  ${calc('ខ្វះ/លើសបំណែក','TCP BALANCE','tb')}</tbody></table>`;
+ const dates=[...new Set(L.map(e=>e.date))].filter(d=>d!==cpd).sort();
+ const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:''};
+ const gi=(d,z)=>`<td class="n"><input class="gi" type="number" min="0" data-t="${t}" data-d="${esc(d)}" data-s="${esc(z.n)}" value="${val(d||cpd,z.n)}"></td>`;
+ const rt=d=>zs.reduce((a,z)=>a+(+val(d,z.n)||0),0).toLocaleString();
+ const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>gi(d,z)).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')}<tr class="ent"><td><input type="date" class="gdate" value="${cpd}"></td>${zs.map(z=>gi('',z)).join('')}<td class="n rt">${rt(cpd)}</td><td></td></tr></tbody></table>`;
+ return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div><h4 class="tsh">ទទួលបំណែកកាត់ប្រចាំថ្ងៃ / Daily take cutting piece</h4><div class="scroll rep">${grid}</div></div>`;
+}
+function renderCPd(){
+ const x=data.find(v=>v.id===cpId);if(!x)return;
+ const ts=gtOf(x);
+ $('cpt').textContent='ទទួលបំណែកកាត់ / Take Cutting Piece — '+x.style+' (ក្រុម '+x.line+')';
+ $('cpsum').innerHTML=cpKpi(x);
+ $('cpsec').innerHTML=ts.map(t=>cpSec(x,t)).join('');
+ $('cpsec').querySelectorAll('.tsecx').forEach((b,i)=>cpPaint(x,b,ts[i]));
+}
+$('cpsec').addEventListener('change',e=>{
+ const i=e.target,x=data.find(v=>v.id===cpId);if(!x)return;
+ if(i.classList.contains('gdate')){if(i.value){cpd=i.value;renderCPd()}return}
+ const box=i.closest('.tsecx'),t=i.dataset.t,s=i.dataset.s;
+ if(i.classList.contains('ci')){
+  const k=i.dataset.k,o=x[k]=x[k]||{};
+  if(k==='cut'){const m=o[t]=o[t]||{};m[s]=+i.value||0}
+  else if(i.value==='')delete o[s];else o[s]=+i.value||0;
+  save();cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x);render();return
+ }
+ if(!i.classList.contains('gi'))return;
+ const d=i.dataset.d||cpd,q=+i.value||0,dt=dT(x);x.tcp=x.tcp||[];
+ const ex=x.tcp.find(v=>v.date===d&&(v.s||'')===s&&(v.t||dt)===t);
+ if(q>0){if(ex)ex.q=q;else x.tcp.push({id:Date.now()+x.tcp.length,date:d,s,q,t})}else if(ex)x.tcp=x.tcp.filter(v=>v!==ex);
+ save();
+ const tr=i.closest('tr');tr.querySelector('.rt').textContent=[...tr.querySelectorAll('.gi')].reduce((a,n)=>a+(+n.value||0),0).toLocaleString();
+ cpPaint(x,box,t);$('cpsum').innerHTML=cpKpi(x);render();
+});
+$('cpsec').addEventListener('click',e=>{
+ const b=e.target.closest('button[data-del]');if(!b)return;
+ const x=data.find(v=>v.id===cpId);if(!x)return;
+ if(!confirm('លុបថ្ងៃនេះ? / Delete this date?'))return;
+ const dt=dT(x);x.tcp=(x.tcp||[]).filter(v=>!(v.date===b.dataset.del&&(v.t||dt)===b.dataset.t));
+ save();renderCPd();render();
+});
+$('cpclose').onclick=()=>$('cpdlg').close();
+
+/* --- Total (production summary) --- */
+let totRows=[];
+function renderTotal(){
+ const fl=$('tln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
+ const pc=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+ const g3=(q,o)=>{const d=q-o;return `<td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td class="n">${pc(q,o)}</td>`};
+ const T={o:0,c:0,p:0,s:0};totRows=[];
+ const body=r.map(x=>{
+  const c=cutOf(x),p=tcpOf(x),s=cqOf(x),clr=(x.clr||[]).map(k=>k.n).join(', ');
+  T.o+=x.oq;T.c+=c;T.p+=p;T.s+=s;
+  totRows.push([x.line,x.buyer,x.ut,x.style,clr,x.dd||'',x.oq,c,c-x.oq,pc(c,x.oq),p,p-x.oq,pc(p,x.oq),s,s-x.oq,pc(s,x.oq)]);
+  return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${esc(clr)||'—'}</td><td>${x.dd||'—'}</td><td class="n">${x.oq.toLocaleString()}</td>${g3(c,x.oq)}${g3(p,x.oq)}${g3(s,x.oq)}<td></td></tr>`}).join('');
+ const foot=r.length?`<tr class="tt"><td>សរុប / TOTAL</td><td></td><td></td><td></td><td></td><td></td><td class="n">${T.o.toLocaleString()}</td>${g3(T.c,T.o)}${g3(T.p,T.o)}${g3(T.s,T.o)}<td></td></tr>`:'';
+ $('trows').innerHTML=body+foot;
+ $('tempty').hidden=r.length>0;
+ $('tupd').textContent=todayStr;
+ $('tk1').textContent=T.o.toLocaleString();$('tk2').textContent=T.c.toLocaleString();$('tk3').textContent=T.p.toLocaleString();$('tk4').textContent=T.s.toLocaleString();
+}
+$('tln').addEventListener('change',renderTotal);
+$('tcsv').onclick=()=>{
+ const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+ const hd=['Line','Buyer','UT#','Style#','Color','D/D','Order Qty','Cutting QTY','Cutting Balance','Cutting %','Take Cutting Piece','TCP Balance','TCP %','Sewing QTY','Sewing Balance','Sewing %'];
+ const l=[hd.map(q).join(',')].concat(totRows.map(r=>r.map(q).join(',')));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+l.join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='production-summary-'+todayStr+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+$('tprint').onclick=()=>window.print();
+
 lineOpts();render();
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');

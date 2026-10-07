@@ -12,7 +12,9 @@
 <button data-v="pv" class="on">📋 ផែនការ<span>Plan</span></button>
 <button data-v="dv">✏️ ទិន្នន័យប្រចាំថ្ងៃ<span>Daily Entry</span></button>
 <button data-v="fv">🧵 បើកក្រណាត់<span>Fabric Issue</span></button>
+<button data-v="cv">✂️ ទទួលបំណែកកាត់<span>Cutting Piece</span></button>
 <button data-v="lv">🏭 ក្រុមដេរ<span>Sewing Lines</span></button><button data-v="rv">📊 របាយការណ៍<span>Report</span></button>
+<button data-v="tv">📈 សង្ខេបផលិតកម្ម<span>Total</span></button>
 <button data-v="ev">📅 ថ្ងៃ-ខែ-ឆ្នាំបញ្ចប់<span>Finish Date</span></button>
 <button data-v="sv">🚚 ថ្ងៃចេញទំនិញ<span>Ship Date</span></button>
 <div class="sync" id="sync"></div></nav>
@@ -105,6 +107,18 @@
 <div class="panel scroll"><table><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ប្រភេទ<span>Type</span></th><th>ទំហំ<span>Sizes</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th></tr></thead><tbody id="rrows"></tbody></table>
 <div id="rempty" class="empty" hidden>គ្មានទិន្នន័យ / No data.</div></div>
 </section>
+<section id="cv" hidden>
+<div class="filter"><label>ក្រុម / Line<select id="cln"></select></label></div>
+<div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ប្រភេទ<span>Type</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">កាត់<span>Cutting</span></th><th class="n">ទទួលបំណែក<span>Take Cutting Piece</span></th><th class="n">ខ្វះ/លើស<span>Balance</span></th><th></th></tr></thead><tbody id="cprows"></tbody></table>
+<div id="cpempty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders.</div></div>
+</section>
+<section id="tv" hidden>
+<div class="filter"><label>ក្រុម / Line<select id="tln"></select></label><button type="button" id="tcsv">⬇ Excel (CSV)</button><button type="button" class="sec" id="tprint">🖨 បោះពុម្ព / Print</button></div>
+<div class="kpis"><div class="kpi"><small>ថ្ងៃធ្វើបច្ចុប្បន្នភាព / Update Date</small><b id="tupd" style="font-size:1.2rem"></b></div><div class="kpi"><small>ចំនួនកម្មង់ / Order Qty</small><b id="tk1">0</b></div><div class="kpi"><small>កាត់ / Cutting</small><b id="tk2">0</b></div><div class="kpi"><small>ទទួលបំណែក / Take Cutting Piece</small><b id="tk3">0</b></div><div class="kpi"><small>ដេរ / Sewing</small><b id="tk4">0</b></div></div>
+<div class="panel scroll"><table><thead><tr><th rowspan="2">ក្រុម<span>Line</span></th><th rowspan="2">អ្នកទិញ<span>Buyer</span></th><th rowspan="2">កុងត្រា<span>UT#</span></th><th rowspan="2">ម៉ូដែល<span>Style#</span></th><th rowspan="2">ពណ៌<span>Color</span></th><th rowspan="2">ដឹកជញ្ជូន<span>D/D</span></th><th rowspan="2" class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th colspan="3" class="g">កាត់<span>Cutting</span></th><th colspan="3" class="g">ទទួលបំណែកកាត់<span>Take Cutting Piece</span></th><th colspan="3" class="g">ដេរ<span>Sewing</span></th><th rowspan="2"></th></tr>
+<tr><th class="n">ចំនួន<span>Qty</span></th><th class="n">ខ្វះ/លើស<span>Balance</span></th><th class="n">បញ្ចប់<span>Finish%</span></th><th class="n">ចំនួន<span>Qty</span></th><th class="n">ខ្វះ/លើស<span>Balance</span></th><th class="n">បញ្ចប់<span>Finish%</span></th><th class="n">ចំនួន<span>Qty</span></th><th class="n">ខ្វះ/លើស<span>Balance</span></th><th class="n">បញ្ចប់<span>Finish%</span></th></tr></thead><tbody id="trows"></tbody></table>
+<div id="tempty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders.</div></div>
+</section>
 <section id="ev" hidden>
 <div class="filter"><label>ក្រុម / Line<select id="eln"></select></label></div>
 <div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th><th class="n">ខ្វះ/លើស<span>Short/Over</span></th><th>ថ្ងៃ-ខែ-ឆ្នាំបញ្ចប់<span>Finish Date</span></th></tr></thead><tbody id="erows"></tbody></table>
@@ -119,6 +133,8 @@
 <dialog id="shdlg"><h2 id="sht"></h2><div id="shsum" class="kpis"></div>
 <div class="scroll rep" id="shg" style="margin-bottom:12px"></div>
 <div style="text-align:right"><button type="button" class="sec" id="shc">បិទ / Close</button></div></dialog>
+<dialog id="cpdlg"><h2 id="cpt"></h2><div id="cpsum" class="kpis"></div><div id="cpsec"></div>
+<div style="text-align:right;margin-top:12px"><button type="button" class="sec" id="cpclose">បិទ / Close</button></div></dialog>
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>

@@ -86,3 +86,9 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 .isf{margin-bottom:10px}
 .tsecx{margin-bottom:22px;padding-bottom:6px}
 #idlg .rep .gdate{width:160px;padding:7px}
+
+#cpdlg{width:min(1100px,96vw)}
+#cpdlg .rep input.gi,#cpdlg .rep input.ci{width:96px;text-align:right;padding:7px}
+#cpdlg .rep .gdate{width:160px;padding:7px}
+.rep tr.ent td{background:var(--run)}
+tr.tt td{font-weight:800;background:var(--bg)!important;border-top:2px solid var(--line)}
