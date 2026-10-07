@@ -165,7 +165,6 @@ function renderLines(){
   <button class="a" data-l="${l}">មើលផែនការ / View plan</button></div>`}).join('');
 }
 $('lgrid').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(!b)return;$('fl').value=b.dataset.l;go('pv')});
-$('m0').onclick=()=>mt(false);$('m1').onclick=()=>mt(true);
 const tl={top:'អាវ / Top',pants:'ខោ / Pants'};
 function renderIss(){
  const x=data.find(v=>v.id===issId);if(!x)return;
