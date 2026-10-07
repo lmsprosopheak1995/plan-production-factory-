@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ផែនការ និងទិន្នផលដេរ / Sewing Plan & Output</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app"><nav class="side" id="side"><div class="brand">🧵 ដេរ / Sewing</div>
+<button data-v="pv" class="on">📋 ផែនការ<span>Plan</span></button>
+<button data-v="dv">✏️ ទិន្នន័យប្រចាំថ្ងៃ<span>Daily Entry</span></button>
+<button data-v="fv">🧵 បើកក្រណាត់<span>Fabric Issue</span></button>
+<button data-v="lv">🏭 ក្រុមដេរ<span>Sewing Lines</span></button><div class="sync" id="sync"></div></nav>
+<main>
+<h1>ផែនការ និងទិន្នផលដេរ <span style="font-weight:400;color:var(--mute)">/ Sewing Plan & Output</span></h1>
+
+<section id="pv">
+<div class="filter">
+<button type="button" id="ab">+ បញ្ចូលកម្មង់ / Add Order</button>
+<label>ថ្ងៃផែនការ / Plan Date<input type="date" id="pd"></label>
+<label>ក្រុម / Line<select id="fl"><option value="">ទាំងអស់ / All</option></select></label>
+</div>
+
+<div class="kpis">
+<div class="kpi"><small>ក្រុមកំពុងផលិត / Lines Running</small><b id="k1">0</b></div>
+<div class="kpi"><small>ទិន្នផលប្រចាំថ្ងៃ / Daily Output</small><b id="k2">0</b></div>
+<div class="kpi"><small>នៅខ្វះ / Remaining Qty</small><b id="k3" class="bad">0</b></div>
+<div class="kpi"><small>ហួសកំណត់ដឹក / Late Orders</small><b id="k4" class="bad">0</b></div>
+</div>
+
+<dialog id="dlg">
+<h2 id="ft">បញ្ចូលកម្មង់ / Add Order</h2>
+<form id="f">
+<label>ក្រុម / Line<select id="line" required></select></label>
+<label>អ្នកទិញ / Buyer<input id="buyer" required></label>
+<label>លេខកុងត្រា / UT#<input id="ut" required></label>
+<label>លេខម៉ូដែល / Style#<input id="style" required></label>
+<label>ប្រភេទ / Garment<select id="gt"><option value="top">អាវ / Top</option><option value="pants">ខោ / Pants</option><option value="set">អាវ+ខោ / Set</option></select></label>
+<label>ចំនួនកម្មង់ / Order Qty<input type="number" id="oq" min="0" required></label>
+<label>ចំនួនបញ្ចូលផលិត / Input Qty<input type="number" id="iq" min="0" value="0"></label>
+<label>ទិន្នផលសម្រេចបាន / Completed Qty<input type="number" id="cq" min="0" value="0" title="បំពេញដោយដៃ ពេលភ្លេចបញ្ចូលប្រចាំថ្ងៃ / manual catch-up"></label>
+<label>ចំនួនកម្មករ / Workers<input type="number" id="wk" min="0"></label>
+<label>ទិន្នផលប្រចាំថ្ងៃ / Daily Output<input type="number" id="dq" min="0" required></label>
+<label>ថ្ងៃកាត់ / Cutting Date<input type="date" id="cd"></label>
+<label>ថ្ងៃចាប់ផ្តើមដេរ / Online Date<input type="date" id="od"></label>
+<label>ថ្ងៃដឹកជញ្ជូន / D/D<input type="date" id="dd"></label>
+<label>ស្ថានភាព / Status<select id="st"><option value="run">កំពុងផលិត / Running</option><option value="done">បានបញ្ចប់ / Finished</option></select></label>
+<label>កំណត់សម្គាល់ / Remark<input id="rm"></label>
+<div style="grid-column:1/-1"><label>ពណ៌ / Colors (ចំនួនតាមពណ៌ / qty per color)</label><div id="crows"></div><button type="button" class="sec" id="ac">+ បន្ថែមពណ៌ / Add color</button></div>
+<div style="grid-column:1/-1"><label>ទំហំ / Sizes (ចំនួនតាមទំហំ / qty per size)</label><div class="szg" id="szg"></div></div>
+<button type="submit" id="sb">រក្សាទុក / Save</button>
+<button type="button" class="sec" id="cb" hidden>បោះបង់ / Cancel</button>
+</form>
+</dialog>
+<dialog id="idlg">
+<h2 id="it"></h2>
+<div id="isum" class="kpis"></div>
+<h2 style="font-size:.95rem">ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily Completed</h2>
+<form id="lf" style="margin-bottom:10px">
+<label>ថ្ងៃ / Date<input type="date" id="ldate" required></label>
+<label id="lsl">ទំហំ / Size<select id="lsize"></select></label>
+<label>បានបញ្ចប់ / Completed<input type="number" id="lqty" min="0" required></label>
+<button type="submit">រក្សាទុក / Save</button>
+</form>
+<div class="scroll" style="margin-bottom:12px"><table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ទំហំ<span>Size</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th><th></th></tr></thead><tbody id="lhist"></tbody></table></div>
+<h2 style="font-size:.95rem">បើកខោ-អាវមកដេរ / Issue to Sewing</h2>
+<form id="if" style="margin-bottom:12px">
+<label>ថ្ងៃ / Date<input type="date" id="idate" required></label>
+<label>ប្រភេទ / Type<select id="itype"></select></label>
+<label id="icl">ពណ៌ / Color<select id="icolor"></select></label>
+<label id="isl">ទំហំ / Size<select id="isize"></select></label>
+<label>ចំនួនបើក / Qty<input type="number" id="iqty" min="1" required></label>
+<button type="submit">បន្ថែម / Add</button>
+</form>
+<div class="scroll" id="icb" style="margin-bottom:12px"></div>
+<div class="scroll" id="isb" style="margin-bottom:12px"></div>
+<div class="scroll"><table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ប្រភេទ<span>Type</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody id="ihist"></tbody></table></div>
+<div style="text-align:right;margin-top:12px"><button type="button" class="sec" id="iclose">បិទ / Close</button></div>
+</dialog>
+
+<div class="panel">
+<div class="tabs"><button id="t0" class="on">សកម្ម / Active <span id="c0"></span></button><button id="t1">ប័ណ្ណសារ / Archive <span id="c1"></span></button></div>
+<div class="scroll"><table>
+<thead><tr><th rowspan="2">ក្រុម<span>Line</span></th><th rowspan="2">អ្នកទិញ<span>Buyer</span></th><th rowspan="2">កុងត្រា<span>UT#</span></th><th rowspan="2">ម៉ូដែល<span>Style#</span></th><th rowspan="2">ពណ៌<span>Color</span></th><th rowspan="2">ទំហំ<span>Sizes</span></th><th rowspan="2" class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th rowspan="2" class="n">បញ្ចូលផលិត<span>Input Qty</span></th><th rowspan="2" class="n">បានបញ្ចប់<span>Completed</span></th><th rowspan="2" class="n">ខ្វះ/លើស<span>Short/Over</span></th><th colspan="2" class="g">អាវ<span>Top</span></th><th colspan="2" class="g">ខោ<span>Pants</span></th><th rowspan="2" class="n">កម្មករ<span>Workers</span></th><th rowspan="2" class="n">ទិន្នផល/ថ្ងៃ<span>Daily Output</span></th><th rowspan="2" class="n">ថ្ងៃផលិត<span>Production days</span></th><th rowspan="2" class="n">ថ្ងៃនៅសល់<span>Days Left</span></th><th rowspan="2">បញ្ចប់ប៉ាន់ស្មាន<span>Est. Finish</span></th><th rowspan="2">ថ្ងៃកាត់<span>Cutting</span></th><th rowspan="2">ចាប់ផ្តើមដេរ<span>Online</span></th><th rowspan="2">ដឹកជញ្ជូន<span>D/D</span></th><th rowspan="2">កំណត់សម្គាល់<span>Remark</span></th><th rowspan="2"></th></tr>
+<tr><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+<div id="empty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders here.</div>
+</div>
+</section>
+<section id="dv" hidden>
+<div class="filter">
+<label>ថ្ងៃ / Date<input type="date" id="dday"></label>
+<label>ក្រុម / Line<select id="dln"></select></label>
+</div>
+<div class="kpis">
+<div class="kpi"><small>បានដេរបញ្ចប់ថ្ងៃនេះ / Completed Today</small><b id="d1">0</b></div>
+<div class="kpi"><small>បើកអាវថ្ងៃនេះ / Top Issued Today</small><b id="d2">0</b></div>
+<div class="kpi"><small>បើកខោថ្ងៃនេះ / Pants Issued Today</small><b id="d3">0</b></div>
+</div>
+<div class="panel scroll"><table><thead><tr>
+<th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ពណ៌<span>Color</span></th>
+<th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">បញ្ចូលផលិត<span>Input Qty</span></th>
+<th class="n">បានបញ្ចប់ថ្ងៃនេះ<span>Completed Today</span></th><th class="n">បើកអាវថ្ងៃនេះ<span>Top Issued</span></th><th class="n">បើកខោថ្ងៃនេះ<span>Pants Issued</span></th>
+<th class="n">បានបញ្ចប់សរុប<span>Total Completed</span></th><th class="n">ខ្វះ/លើស<span>Short/Over</span></th><th></th>
+</tr></thead><tbody id="drows"></tbody></table>
+<div id="dempty" class="empty" hidden>គ្មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div></div>
+</section>
+<section id="fv" hidden>
+<div class="filter"><label>ថ្ងៃ / Date<input type="date" id="fday"></label><label>ក្រុម / Line<select id="fln"></select></label></div>
+<div class="kpis"><div class="kpi"><small>បើកអាវថ្ងៃនេះ / Top Issued Today</small><b id="f1">0</b></div><div class="kpi"><small>បើកខោថ្ងៃនេះ / Pants Issued Today</small><b id="f2">0</b></div></div>
+<div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">អាវបើក<span>Top Issued</span></th><th class="n">អាវខ្វះ<span>Top Short</span></th><th class="n">ខោបើក<span>Pants Issued</span></th><th class="n">ខោខ្វះ<span>Pants Short</span></th><th class="n">អាវថ្ងៃនេះ<span>Top Today</span></th><th class="n">ខោថ្ងៃនេះ<span>Pants Today</span></th><th></th></tr></thead><tbody id="frows"></tbody></table>
+<div id="fempty" class="empty" hidden>គ្មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div></div>
+</section>
+<section id="lv" hidden><div class="lgrid" id="lgrid"></div></section>
+</main></div>
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
