@@ -58,3 +58,11 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 .lc dt{color:var(--mute)}.lc dd{margin:0;text-align:right;font-weight:600}
 @media(max-width:760px){.app{flex-direction:column}.side{width:100%;height:auto;flex-direction:row;overflow-x:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line);z-index:5}.side .brand{display:none}.side button{flex:none}}
 .side .sync{margin-top:auto;font-size:.72rem;color:var(--mute);padding:8px 10px}.side .sync.bad{color:var(--bad)}
+#idlg{width:calc(100vw - 32px);max-width:none;height:calc(100vh - 32px);max-height:none;padding:24px 28px}
+#idlg h2:first-child{font-size:1.3rem}
+#idlg form{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+#idlg input,#idlg select{padding:10px;font-size:1rem}
+#idlg button{padding:11px 18px}
+#idlg table{font-size:1rem}
+#idlg th,#idlg td{padding:10px 16px}
+#idlg .kpi b{font-size:1.8rem}
