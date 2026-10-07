@@ -103,3 +103,9 @@ tr.tt td{font-weight:800;background:var(--bg)!important;border-top:2px solid var
 #cpdlg input{padding:4px 6px;font-size:.85rem}
 #cpdlg .rep input.gi,#cpdlg .rep input.ci{width:64px}
 #cpdlg .kpi{padding:5px 10px}#cpdlg .kpi b{font-size:1.2rem}
+
+#edlg{width:min(520px,94vw);padding:14px 16px}
+#edlg h2{font-size:1rem}
+#edlg form{grid-template-columns:1fr;gap:10px}
+#edlg .szg{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+#edlg input{padding:5px 7px;font-size:.9rem}

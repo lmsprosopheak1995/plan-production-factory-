@@ -171,14 +171,13 @@ function secHtml(x,t){
  const iform=`<form class="isf" data-t="${t}"><label>ថ្ងៃ / Date<input type="date" name="date" value="${gd}" required></label>${hc?`<label>ពណ៌ / Color<select name="color">${x.clr.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select></label>`:''}${has?`<label>ទំហំ / Size<select name="size"><option value="">ទាំងអស់ / All</option>${x.sz.map(z=>`<option>${esc(z.n)}</option>`).join('')}</select></label>`:''}<label>ចំនួនបើក / Qty<input type="number" name="qty" min="1" required></label><button type="submit">បន្ថែម / Add</button></form>`;
  const ct=hc?`<div class="scroll rep"><table style="min-width:0"><thead><tr><th>ពណ៌<span>Color</span></th><th class="n">កម្មង់<span>Order</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th></tr></thead><tbody>${x.clr.map(c=>{const q=issSum(x,t,c.n),r=c.q-q;return `<tr><td>${esc(c.n)}</td><td class="n">${c.q.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${bc(r)}">${fmN(r)}</td></tr>`}).join('')}</tbody></table></div>`:'';
  const hist=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody>${I.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<tr><td>${e.date}</td><td>${esc(e.c||'—')}</td><td>${esc(e.s||'—')}</td><td class="n">${e.q.toLocaleString()}</td><td><button class="x" data-eid="${e.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">មិនទាន់មានកំណត់ត្រាបើក / No issues yet</td></tr>'}</tbody></table>`;
- const dates=[...new Set(L.map(e=>e.date))].filter(d=>d!==gd).sort();
- const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:''};
- const inp=(d,z)=>`<td class="n"><input class="gi" type="number" min="0" data-t="${t}" data-d="${esc(d)}" data-s="${esc(z.n)}" value="${val(d||gd,z.n)}"></td>`;
- const rt=d=>zs.reduce((a,z)=>a+(+val(d,z.n)||0),0).toLocaleString();
- const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>inp(d,z)).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')}<tr class="ent"><td><input type="date" class="gdate" value="${gd}"></td>${zs.map(z=>inp('',z)).join('')}<td class="n rt">${rt(gd)}</td><td></td></tr></tbody></table>`;
+ const dates=[...new Set(L.map(e=>e.date))].sort();
+ const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:0};
+ const rt=d=>zs.reduce((a,z)=>a+val(d,z.n),0).toLocaleString();
+ const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>`<td class="n">${val(d,z.n)||'—'}</td>`).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="a" data-edit="${esc(d)}" data-t="${t}">កែ</button><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')||`<tr><td colspan="${zs.length+3}" class="empty">មិនទាន់មានទិន្នន័យ / No entries yet</td></tr>`}</tbody></table>`;
  return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div>
  <h4 class="tsh">① បើកមកដេរ / Issue to sewing</h4>${iform}${ct}<div class="scroll rep">${hist}</div>
- <h4 class="tsh">② ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily sewing</h4><div class="scroll rep">${grid}</div></div>`;
+ <h4 class="tsh">② ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily sewing <button type="button" class="a" data-add="${t}">+ បញ្ចូល / Add</button></h4><div class="scroll rep">${grid}</div></div>`;
 }
 function renderIss(){
  const x=data.find(v=>v.id===issId);if(!x)return;
@@ -226,7 +225,7 @@ function renderReport(){
  const f=$('rfrom').value,t=$('rto').value,fl=$('rln').value,m={};
  data.filter(x=>!fl||x.line===fl).forEach(x=>(x.log||[]).forEach(e=>{
   if((f&&e.date<f)||(t&&e.date>t))return;
-  const t=e.t||dT(x),k=x.id+'|'+e.date+'|'+t,r=m[k]||(m[k]={d:e.date,x,t,s:{},q:0});r.q+=e.q;if(e.s)r.s[e.s]=(r.s[e.s]||0)+e.q}));
+  const ty=e.t||dT(x),k=x.id+'|'+e.date+'|'+ty,r=m[k]||(m[k]={d:e.date,x,t:ty,s:{},q:0});r.q+=e.q;if(e.s)r.s[e.s]=(r.s[e.s]||0)+e.q}));
  repRows=Object.values(m).sort((a,b)=>a.d.localeCompare(b.d)||(+a.x.line)-(+b.x.line));
  const sz=r=>Object.keys(r.s).map(n=>n+':'+r.s[n]).join(' ');
  $('rrows').innerHTML=repRows.map(r=>`<tr><td>${r.d}</td><td>${esc(r.x.line)}</td><td>${esc(r.x.buyer)}</td><td>${esc(r.x.ut)}</td><td>${esc(r.x.style)}</td><td>${tl[r.t]}</td><td>${esc(sz(r))||'—'}</td><td class="n">${r.q.toLocaleString()}</td></tr>`).join('');
@@ -348,12 +347,11 @@ function cpSec(x,t){
   ${calc('ខ្វះ/លើសកាត់','CUTTING BALANCE','cb')}
   ${calc('ទទួលបំណែកកាត់','TAKE CUTTING PIECE','tc')}
   ${calc('ខ្វះ/លើសបំណែក','TCP BALANCE','tb')}</tbody></table>`;
- const dates=[...new Set(L.map(e=>e.date))].filter(d=>d!==cpd).sort();
- const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:''};
- const gi=(d,z)=>`<td class="n"><input class="gi" type="number" min="0" data-t="${t}" data-d="${esc(d)}" data-s="${esc(z.n)}" value="${val(d||cpd,z.n)}"></td>`;
- const rt=d=>zs.reduce((a,z)=>a+(+val(d,z.n)||0),0).toLocaleString();
- const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>gi(d,z)).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')}<tr class="ent"><td><input type="date" class="gdate" value="${cpd}"></td>${zs.map(z=>gi('',z)).join('')}<td class="n rt">${rt(cpd)}</td><td></td></tr></tbody></table>`;
- return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div><h4 class="tsh">ទទួលបំណែកកាត់ប្រចាំថ្ងៃ / Daily take cutting piece</h4><div class="scroll rep">${grid}</div></div>`;
+ const dates=[...new Set(L.map(e=>e.date))].sort();
+ const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:0};
+ const rt=d=>zs.reduce((a,z)=>a+val(d,z.n),0).toLocaleString();
+ const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>`<td class="n">${val(d,z.n)||'—'}</td>`).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="a" data-edit="${esc(d)}" data-t="${t}">កែ</button><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')||`<tr><td colspan="${zs.length+3}" class="empty">មិនទាន់មានទិន្នន័យ / No entries yet</td></tr>`}</tbody></table>`;
+ return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div><h4 class="tsh">ទទួលបំណែកកាត់ប្រចាំថ្ងៃ / Daily take cutting piece <button type="button" class="a" data-add="${t}">+ បញ្ចូល / Add</button></h4><div class="scroll rep">${grid}</div></div>`;
 }
 function renderCPd(){
  const x=data.find(v=>v.id===cpId);if(!x)return;
@@ -415,6 +413,36 @@ $('tcsv').onclick=()=>{
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+l.join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='production-summary-'+todayStr+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 $('tprint').onclick=()=>window.print();
+
+
+/* --- Entry pop-up modal (sewing + cutting piece) --- */
+let em=null;
+function fillEntry(){
+ const x=data.find(v=>v.id===em.id);if(!x)return;
+ const d=$('edate').value,t=em.t,has=(x.sz||[]).length>0,L=em.kind==='cp'?(x.tcp||[]):(x.log||[]);
+ $('eszg').innerHTML=zsOf(x).map(z=>{const e=L.find(v=>v.date===d&&(v.t||dT(x))===t&&(v.s||'')===z.n);return `<label>${has?esc(z.n):'ចំនួន / Qty'}<input type="number" min="0" data-s="${esc(z.n)}" value="${e?e.q:''}"></label>`}).join('');
+}
+function openEntry(kind,x,t,d){
+ em={kind,id:x.id,t};
+ $('eht').textContent=(kind==='cp'?'ទទួលបំណែកកាត់ / Take Cutting Piece':'ដេរបញ្ចប់ / Daily sewing')+' — '+tl[t]+' ('+x.style+')';
+ $('edate').value=d;fillEntry();$('edlg').showModal();
+ const f=$('eszg').querySelector('input');if(f)f.focus();
+}
+$('edate').addEventListener('change',fillEntry);
+$('ecancel').onclick=()=>$('edlg').close();
+$('ef').addEventListener('submit',e=>{
+ e.preventDefault();const x=data.find(v=>v.id===em.id);if(!x)return;
+ const key=em.kind==='cp'?'tcp':'log',d=$('edate').value,t=em.t,dt=dT(x);if(!d)return;
+ x[key]=x[key]||[];
+ $('eszg').querySelectorAll('input').forEach(i=>{const s=i.dataset.s,q=+i.value||0;
+  const ex=x[key].find(v=>v.date===d&&(v.s||'')===s&&(v.t||dt)===t);
+  if(q>0){if(ex)ex.q=q;else x[key].push({id:Date.now()+x[key].length,date:d,s,q,t})}else if(ex)x[key]=x[key].filter(v=>v!==ex)});
+ save();gd=d;cpd=d;$('edlg').close();
+ if(em.kind==='cp')renderCPd();else renderIss();
+ render();
+});
+$('tsec').addEventListener('click',e=>{const b=e.target.closest('button[data-add],button[data-edit]');if(!b)return;const x=data.find(v=>v.id===issId);if(!x)return;openEntry('sew',x,b.dataset.add||b.dataset.t,b.dataset.edit||gd)});
+$('cpsec').addEventListener('click',e=>{const b=e.target.closest('button[data-add],button[data-edit]');if(!b)return;const x=data.find(v=>v.id===cpId);if(!x)return;openEntry('cp',x,b.dataset.add||b.dataset.t,b.dataset.edit||cpd)});
 
 lineOpts();render();
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');
