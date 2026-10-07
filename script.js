@@ -274,27 +274,36 @@ const dateEdit=e=>{
  x[i.dataset.k]=i.value;save();const rs=tr.querySelector('.res');if(rs)rs.innerHTML=resTxt(x);
 };
 $('erows').addEventListener('change',dateEdit);$('srows').addEventListener('change',dateEdit);
-let shId=null;
+let shId=null,shd=todayStr;
 const shQ=x=>(x.ship||[]).reduce((a,e)=>a+e.q,0);
 function renderSh(){
  const x=data.find(v=>v.id===shId);if(!x)return;
+ const has=(x.sz||[]).length>0,zs=has?x.sz:[{n:'',q:x.oq}];
  const L=(x.ship||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id),t=shQ(x),r=x.oq-t;
+ const sn=s=>L.reduce((a,e)=>a+(has?((e.sz||{})[s]||0):e.q),0),bc=n=>n>0?'bad':'ok';
  $('sht').textContent='ចេញទំនិញតាមវគ្គ / Shipments — '+x.style+' (ក្រុម '+x.line+')';
- $('shsum').innerHTML=`<div class="kpi"><small>ចំនួនកម្មង់ / Order</small><b>${x.oq.toLocaleString()}</b></div><div class="kpi"><small>ចេញរួច / Shipped</small><b>${t.toLocaleString()}</b></div><div class="kpi"><small>នៅសល់ / Remaining</small><b class="${r>0?'bad':'ok'}">${fmN(r)}</b></div>`;
- let c=0;
- $('shb').innerHTML=L.map((e,i)=>{c+=e.q;return `<tr><td>${i+1}</td><td>${e.date}</td><td class="n">${e.q.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td>${esc(e.n||'')}</td><td><button class="x" data-sid="${e.id}">លុប</button></td></tr>`}).join('')||'<tr><td colspan="6" class="empty">មិនទាន់មានវគ្គចេញ / No shipments yet</td></tr>';
+ $('shsum').innerHTML=`<div class="kpi"><small>ចំនួនកម្មង់ / Order</small><b>${x.oq.toLocaleString()}</b></div><div class="kpi"><small>ចេញរួច / Shipped</small><b>${t.toLocaleString()}</b></div><div class="kpi"><small>នៅសល់ / Remaining</small><b class="${bc(r)}">${fmN(r)}</b></div>`;
+ const sm=(l,e,f,tt,s)=>`<tr class="sm"><td>${l}<span class="sub">${e}</span></td><td></td>${zs.map(z=>`<td class="n ${s?bc(f(z)):''}">${s?fmN(f(z)):f(z).toLocaleString()}</td>`).join('')}<td class="n ${s?bc(tt):''}">${s?fmN(tt):tt.toLocaleString()}</td><td></td><td></td></tr>`;
+ const rows=L.map((e,i)=>`<tr><td>${i+1}</td><td>${e.date}</td>${zs.map(z=>`<td class="n">${has?((e.sz||{})[z.n]||0).toLocaleString():e.q.toLocaleString()}</td>`).join('')}<td class="n">${e.q.toLocaleString()}</td><td>${esc(e.n||'')}</td><td><button class="x" data-sid="${e.id}">លុប</button></td></tr>`).join('');
+ const ent=`<tr class="ent"><td>+</td><td><input type="date" id="shd" value="${shd}"></td>${zs.map(z=>`<td class="n"><input class="shi" type="number" min="0" data-s="${esc(z.n)}"></td>`).join('')}<td class="n" id="sht2">0</td><td><input id="shn"></td><td><button type="button" class="a" id="sha">បន្ថែមវគ្គ / Add</button></td></tr>`;
+ $('shg').innerHTML=`<table style="min-width:0"><thead><tr><th>វគ្គ<span>Batch</span></th><th>ថ្ងៃ<span>Date</span></th>${zs.map(z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`).join('')}<th class="n">សរុប<span>Total</span></th><th>កំណត់សម្គាល់<span>Note</span></th><th></th></tr></thead><tbody>${sm('កម្មង់','ORDER',z=>z.q,x.oq)}${sm('ចេញរួច','SHIPPED',z=>sn(z.n),t)}${sm('នៅសល់','REMAINING',z=>z.q-sn(z.n),r,1)}${rows}${ent}</tbody></table>`;
 }
 const syncSd=x=>{x.sd=(x.ship||[]).reduce((m,e)=>e.date>m?e.date:m,'')};
-$('srows').addEventListener('click',e=>{const b=e.target.closest('button[data-sh]');if(!b)return;shId=+b.dataset.sh;$('shd').value=todayStr;renderSh();$('shdlg').showModal()});
-$('shf').addEventListener('submit',e=>{
- e.preventDefault();const x=data.find(v=>v.id===shId);if(!x)return;
- (x.ship=x.ship||[]).push({id:Date.now(),date:$('shd').value,q:+$('shq').value,n:$('shn').value.trim()});
- syncSd(x);save();$('shq').value='';$('shn').value='';renderSh();render();
+$('srows').addEventListener('click',e=>{const b=e.target.closest('button[data-sh]');if(!b)return;shId=+b.dataset.sh;shd=todayStr;renderSh();$('shdlg').showModal()});
+$('shg').addEventListener('click',e=>{
+ const x=data.find(v=>v.id===shId);if(!x)return;
+ const del=e.target.closest('button[data-sid]');
+ if(del){x.ship=(x.ship||[]).filter(v=>v.id!==+del.dataset.sid);if(x.ship.length)syncSd(x);else x.sd='';save();renderSh();render();return}
+ if(e.target.id!=='sha')return;
+ const has=(x.sz||[]).length>0,d=$('shd').value,sz={};let q=0;
+ if(!d)return;
+ $('shg').querySelectorAll('.shi').forEach(i=>{const v=+i.value||0;if(v>0){q+=v;if(has)sz[i.dataset.s]=v}});
+ if(!q)return;
+ const b={id:Date.now(),date:d,q,n:$('shn').value.trim()};if(has)b.sz=sz;
+ (x.ship=x.ship||[]).push(b);syncSd(x);save();shd=d;renderSh();render();
 });
-$('shb').addEventListener('click',e=>{
- const id=+e.target.dataset.sid;if(!id)return;const x=data.find(v=>v.id===shId);if(!x)return;
- x.ship=(x.ship||[]).filter(v=>v.id!==id);if(x.ship.length)syncSd(x);else x.sd='';save();renderSh();render();
-});
+$('shg').addEventListener('input',e=>{if(e.target.classList.contains('shi'))$('sht2').textContent=[...$('shg').querySelectorAll('.shi')].reduce((a,i)=>a+(+i.value||0),0).toLocaleString()});
+$('shg').addEventListener('change',e=>{if(e.target.id==='shd'&&e.target.value)shd=e.target.value});
 $('shc').onclick=()=>$('shdlg').close();
 lineOpts();render();
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');

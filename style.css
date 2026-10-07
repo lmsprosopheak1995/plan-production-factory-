@@ -77,3 +77,6 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 #erows input[type=date]{min-width:150px}
 @media print{.side,.filter,.kpis{display:none!important}.app{display:block}body{background:#fff;color:#000}}
 #srows input[type=date]{min-width:150px}
+#shdlg{width:min(1100px,96vw)}
+#shdlg input.shi{width:90px;text-align:right;padding:7px}
+#shdlg #shd{width:160px;padding:7px}
