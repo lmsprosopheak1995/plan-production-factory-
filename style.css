@@ -80,3 +80,9 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 #shdlg{width:min(1100px,96vw)}
 #shdlg input.shi{width:90px;text-align:right;padding:7px}
 #shdlg #shd{width:160px;padding:7px}
+.tbar{margin:18px 0 8px;padding:8px 14px;border-radius:8px;font-size:1.1rem;color:#fff}
+.tbar.top{background:#1f5f8b}.tbar.pants{background:#9a5b1c}
+.tsh{margin:16px 0 6px;font-size:.95rem;color:var(--mute)}
+.isf{margin-bottom:10px}
+.tsecx{margin-bottom:22px;padding-bottom:6px}
+#idlg .rep .gdate{width:160px;padding:7px}

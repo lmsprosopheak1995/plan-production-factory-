@@ -60,20 +60,7 @@
 <dialog id="idlg">
 <h2 id="it"></h2>
 <div id="isum" class="kpis"></div>
-<h2 style="font-size:.95rem">របាយការណ៍ដេរប្រចាំថ្ងៃ / Sewing Daily Report</h2>
-<div class="scroll rep" id="rep" style="margin-bottom:14px"></div>
-<h2 style="font-size:.95rem">បើកខោ-អាវមកដេរ / Issue to Sewing</h2>
-<form id="if" style="margin-bottom:12px">
-<label>ថ្ងៃ / Date<input type="date" id="idate" required></label>
-<label>ប្រភេទ / Type<select id="itype"></select></label>
-<label id="icl">ពណ៌ / Color<select id="icolor"></select></label>
-<label id="isl">ទំហំ / Size<select id="isize"></select></label>
-<label>ចំនួនបើក / Qty<input type="number" id="iqty" min="1" required></label>
-<button type="submit">បន្ថែម / Add</button>
-</form>
-<div class="scroll" id="icb" style="margin-bottom:12px"></div>
-<div class="scroll" id="isb" style="margin-bottom:12px"></div>
-<div class="scroll"><table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ប្រភេទ<span>Type</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody id="ihist"></tbody></table></div>
+<div id="tsec"></div>
 <div style="text-align:right;margin-top:12px"><button type="button" class="sec" id="iclose">បិទ / Close</button></div>
 </dialog>
 
@@ -115,7 +102,7 @@
 <section id="rv" hidden>
 <div class="filter"><label>ពីថ្ងៃ / From<input type="date" id="rfrom"></label><label>ដល់ថ្ងៃ / To<input type="date" id="rto"></label><label>ក្រុម / Line<select id="rln"></select></label><button type="button" id="rcsv">⬇ Excel (CSV)</button><button type="button" class="sec" id="rprint">🖨 បោះពុម្ព / Print</button></div>
 <div class="kpis"><div class="kpi"><small>បានដេរបញ្ចប់សរុប / Total Completed</small><b id="r1">0</b></div><div class="kpi"><small>ចំនួនកម្មង់ / Orders</small><b id="r2">0</b></div><div class="kpi"><small>ចំនួនថ្ងៃ / Days</small><b id="r3">0</b></div></div>
-<div class="panel scroll"><table><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ទំហំ<span>Sizes</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th></tr></thead><tbody id="rrows"></tbody></table>
+<div class="panel scroll"><table><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ប្រភេទ<span>Type</span></th><th>ទំហំ<span>Sizes</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th></tr></thead><tbody id="rrows"></tbody></table>
 <div id="rempty" class="empty" hidden>គ្មានទិន្នន័យ / No data.</div></div>
 </section>
 <section id="ev" hidden>

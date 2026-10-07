@@ -42,7 +42,9 @@ function lineOpts(){
  const cur=$('fl').value,ls=[...Array(15)].map((_,i)=>String(i+1));
  $('fl').innerHTML='<option value="">ទាំងអស់ / All</option>'+ls.map(l=>`<option ${l===cur?'selected':''}>${esc(l)}</option>`).join('');
 }
-const cqOf=x=>(x.cq||0)+(x.log||[]).reduce((a,e)=>a+e.q,0);
+const dT=x=>x.gt==='pants'?'pants':'top';
+const cqT=(x,t)=>(x.cq||0)+(x.log||[]).filter(e=>(e.t||dT(x))===t).reduce((a,e)=>a+e.q,0);
+const cqOf=x=>(x.gt||'set')==='set'?Math.min(cqT(x,'top'),cqT(x,'pants')):cqT(x,dT(x));
 const issSum=(x,t,c)=>(x.iss||[]).filter(e=>e.t===t&&(c==null||e.c===c)).reduce((a,e)=>a+e.q,0);
 const issCells=x=>{const g=x.gt||'set';return ['top','pants'].map(t=>{if(g!==t&&g!=='set')return '<td class="n">—</td><td class="n">—</td>';const q=issSum(x,t),r=x.oq-q;return `<td class="n">${q.toLocaleString()}</td><td class="n ${r>0?'bad':'ok'}">${r>0?r.toLocaleString():(r<0?'+'+(-r).toLocaleString():'✓')}</td>`}).join('')};
 function render(){
@@ -85,7 +87,7 @@ $('rows').addEventListener('click',e=>{
  if(a==='del'){if(!confirm('លុបកម្មង់នេះជាអចិន្ត្រៃយ៍? / Delete this order permanently?'))return;data=data.filter(v=>v.id!==id);if(editId===id)stopEdit()}
  else if(a==='arch'){x.arch=true;if(editId===id)stopEdit()}
  else if(a==='restore'){x.arch=false}
- else if(a==='issue'){issId=id;$('idate').value=todayStr;renderIss();$('idlg').showModal();return}
+ else if(a==='issue'){issId=id;renderIss();$('idlg').showModal();return}
  else if(a==='edit'){editId=id;if(x.line&&![...$('line').options].some(o=>o.value===x.line))$('line').add(new Option(x.line,x.line));['line','buyer','ut','style','gt','oq','iq','cq','wk','dq','cd','od','dd','st','rm'].forEach(k=>$(k).value=x[k]==null?'':x[k]);
   $('gt').value=x.gt||'set';$('crows').innerHTML='';(x.clr||[]).forEach(c=>addClr(c.n,c.q));fillSz(x.sz);$('sb').textContent='ធ្វើបច្ចុប្បន្នភាព / Update';$('ft').textContent='កែកម្មង់ / Edit Order';$('cb').hidden=false;$('dlg').showModal();return}
  save();lineOpts();render();
@@ -104,47 +106,6 @@ let issId=null;
 const cqKpi=x=>{const q=cqOf(x),r=x.oq-q;return `<div class="kpi"><small>ដេរបញ្ចប់ / Completed · កម្មង់ ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`};
 let gd=todayStr;
 const fmN=n=>n>0?n.toLocaleString():(n<0?'+'+(-n).toLocaleString():'✓');
-function renderRep(x){
- const has=(x.sz||[]).length>0,zs=has?x.sz:[{n:'',q:x.oq}],L=x.log||[];
- const dn=s=>L.filter(e=>(e.s||'')===s).reduce((a,e)=>a+e.q,0);
- const dates=[...new Set(L.map(e=>e.date))].filter(d=>d!==gd).sort();
- const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:''};
- const inp=(d,z)=>`<td class="n"><input class="gi" type="number" min="0" data-d="${esc(d)}" data-s="${esc(z.n)}" value="${val(d||gd,z.n)}"></td>`;
- const rt=d=>zs.reduce((a,z)=>a+(+val(d,z.n)||0),0).toLocaleString();
- const hd=[['កុងត្រា','CONTRACT',x.ut],['ម៉ូដែល','STYLE',x.style],['អ្នកទិញ','BUYER',x.buyer],['ពណ៌','COLOR',(x.clr||[]).map(c=>c.n).join(', ')||'—']];
- const top=`<table style="min-width:0;margin-bottom:10px"><thead><tr>${hd.map(p=>`<th>${p[0]}<span>${p[1]}</span></th>`).join('')}</tr></thead><tbody><tr>${hd.map(p=>`<td>${esc(p[2])}</td>`).join('')}</tr></tbody></table>`;
- const tot=cqOf(x),bc=n=>n>0?'bad':'ok',lab=(a,b)=>`<td>${a}<span class="sub">${b}</span></td><td></td>`;
- const plan=`<tr class="sm">${lab('ចំនួនផែនការ','PLAN QTY')}${zs.map(z=>`<td class="n">${z.q.toLocaleString()}</td>`).join('')}<td class="n">${x.oq.toLocaleString()}</td><td></td></tr>`;
- const done=`<tr class="sm">${lab('ចំនួនដេរបញ្ចប់','SEWING QTY')}${zs.map(z=>`<td class="n" data-c="done" data-s="${esc(z.n)}">${dn(z.n).toLocaleString()}</td>`).join('')}<td class="n" data-c="done" data-s="*">${tot.toLocaleString()}</td><td></td></tr>`;
- const bal=`<tr class="sm">${lab('ខ្វះ','SEWING BALANCE')}${zs.map(z=>{const r=z.q-dn(z.n);return `<td class="n ${bc(r)}" data-c="bal" data-s="${esc(z.n)}">${fmN(r)}</td>`}).join('')}<td class="n ${bc(x.oq-tot)}" data-c="bal" data-s="*">${fmN(x.oq-tot)}</td><td></td></tr>`;
- const dh=`<tr class="dh"><td>ថ្ងៃ<span class="sub">Date</span></td><td>ក្រុម<span class="sub">Line</span></td><td colspan="${zs.length+2}"></td></tr>`;
- const rows=dates.map(d=>`<tr><td>${esc(d)}</td><td>${esc(x.line)}</td>${zs.map(z=>inp(d,z)).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="x" data-del="${esc(d)}">លុប</button></td></tr>`).join('');
- const ent=`<tr class="ent"><td><input type="date" id="gdate" value="${gd}"></td><td>${esc(x.line)}</td>${zs.map(z=>inp('',z)).join('')}<td class="n rt">${rt(gd)}</td><td></td></tr>`;
- $('rep').innerHTML=top+`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th><th>ក្រុម<span>Line</span></th>${zs.map(z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`).join('')}<th class="n">សរុប<span>TOTAL</span></th><th></th></tr></thead><tbody>${plan}${done}${bal}${dh}${rows}${ent}</tbody></table>`;
-}
-function afterLog(x){$('isum').firstElementChild.outerHTML=cqKpi(x);render()}
-function updRep(x,i){
- const tr=i.closest('tr');tr.querySelector('.rt').textContent=[...tr.querySelectorAll('.gi')].reduce((a,n)=>a+(+n.value||0),0).toLocaleString();
- const zs=(x.sz||[]).length?x.sz:[{n:'',q:x.oq}],tot=cqOf(x);
- const set=(c,s,t,r)=>{const el=$('rep').querySelector(`[data-c="${c}"][data-s="${s}"]`);if(el){el.textContent=t;if(r!=null)el.className='n '+(r>0?'bad':'ok')}};
- zs.forEach(z=>{const d=(x.log||[]).filter(e=>(e.s||'')===z.n).reduce((a,e)=>a+e.q,0);set('done',z.n,d.toLocaleString());set('bal',z.n,fmN(z.q-d),z.q-d)});
- set('done','*',tot.toLocaleString());set('bal','*',fmN(x.oq-tot),x.oq-tot);afterLog(x);
-}
-$('rep').addEventListener('change',e=>{
- const i=e.target,x=data.find(v=>v.id===issId);if(!x)return;
- if(i.id==='gdate'){if(i.value){gd=i.value;renderRep(x)}return}
- if(!i.classList.contains('gi'))return;
- const d=i.dataset.d||gd,s=i.dataset.s,q=+i.value||0;x.log=x.log||[];
- const ex=x.log.find(v=>v.date===d&&(v.s||'')===s);
- if(q>0){if(ex)ex.q=q;else x.log.push({id:Date.now()+x.log.length,date:d,s,q})}else if(ex)x.log=x.log.filter(v=>v!==ex);
- save();updRep(x,i);
-});
-$('rep').addEventListener('click',e=>{
- const b=e.target.closest('button[data-del]');if(!b)return;const x=data.find(v=>v.id===issId);if(!x)return;
- if(!confirm('លុបថ្ងៃនេះ? / Delete this date?'))return;
- x.log=(x.log||[]).filter(v=>v.date!==b.dataset.del);save();renderRep(x);afterLog(x);
-});
-
 function renderDaily(){
  const d=$('dday').value||todayStr,fl=$('dln').value;
  const r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl));
@@ -163,7 +124,7 @@ $('dln').innerHTML='<option value="">ទាំងអស់ / All</option>'+[...A
 $('dday').addEventListener('change',renderDaily);$('dln').addEventListener('change',renderDaily);
 $('drows').addEventListener('click',e=>{
  const b=e.target.closest('button[data-id]');if(!b)return;const id=+b.dataset.id;issId=id;
- gd=$('dday').value||todayStr;$('idate').value=gd;
+ gd=$('dday').value||todayStr;
  renderIss();$('idlg').showModal();
 });
 function fit(){}
@@ -175,7 +136,7 @@ $('side').addEventListener('click',e=>{const b=e.target.closest('button[data-v]'
 const lnOpts='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
 $('fday').value=todayStr;$('fln').innerHTML=lnOpts;
 $('fday').addEventListener('change',renderFabric);$('fln').addEventListener('change',renderFabric);
-function openIss(id,d){issId=id;gd=d;$('idate').value=d;renderIss();$('idlg').showModal()}
+function openIss(id,d){issId=id;gd=d;renderIss();$('idlg').showModal()}
 function renderFabric(){
  const d=$('fday').value||todayStr,fl=$('fln').value,r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl));let t=0,p=0;
  $('frows').innerHTML=r.map(x=>{
@@ -197,36 +158,62 @@ function renderLines(){
 }
 $('lgrid').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(!b)return;$('fl').value=b.dataset.l;go('pv')});
 const tl={top:'អាវ / Top',pants:'ខោ / Pants'};
+function secHtml(x,t){
+ const has=(x.sz||[]).length>0,hc=(x.clr||[]).length>0,zs=has?x.sz:[{n:'',q:x.oq}],dt=dT(x);
+ const L=(x.log||[]).filter(e=>(e.t||dt)===t),I=(x.iss||[]).filter(e=>e.t===t),bc=n=>n>0?'bad':'ok';
+ const sn=s=>L.filter(e=>(e.s||'')===s).reduce((a,e)=>a+e.q,0),isn=s=>I.filter(e=>(e.s||'')===s).reduce((a,e)=>a+e.q,0);
+ const ti=issSum(x,t),tc=cqT(x,t);
+ const th=z=>`<th class="n">${has?esc(z.n):'ចំនួន<span>Qty</span>'}</th>`;
+ const sm=(l,e,f,tt,c,s)=>`<tr class="sm"><td>${l}<span class="sub">${e}</span></td>${zs.map(z=>{const v=f(z);return `<td class="n ${s?bc(v):''}"${c?` data-c="${c}" data-s="${esc(z.n)}"`:''}>${s?fmN(v):v.toLocaleString()}</td>`}).join('')}<td class="n ${s?bc(tt):''}"${c?` data-c="${c}" data-s="*"`:''}>${s?fmN(tt):tt.toLocaleString()}</td></tr>`;
+ const summ=`<table style="min-width:0"><thead><tr><th>ទំហំ<span>SIZE</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>TOTAL</span></th></tr></thead><tbody>${sm('ចំនួនកម្មង់','ORDER',z=>z.q,x.oq)}${sm('បើកមកដេរ','ISSUED',z=>isn(z.n),ti)}${sm('ខ្វះបើក','ISSUE SHORT',z=>z.q-isn(z.n),x.oq-ti,'',1)}${sm('ដេរបញ្ចប់','SEWN',z=>sn(z.n),tc,'done')}${sm('ខ្វះដេរ','SEWING BALANCE',z=>z.q-sn(z.n),x.oq-tc,'bal',1)}</tbody></table>`;
+ const iform=`<form class="isf" data-t="${t}"><label>ថ្ងៃ / Date<input type="date" name="date" value="${gd}" required></label>${hc?`<label>ពណ៌ / Color<select name="color">${x.clr.map(c=>`<option>${esc(c.n)}</option>`).join('')}</select></label>`:''}${has?`<label>ទំហំ / Size<select name="size"><option value="">ទាំងអស់ / All</option>${x.sz.map(z=>`<option>${esc(z.n)}</option>`).join('')}</select></label>`:''}<label>ចំនួនបើក / Qty<input type="number" name="qty" min="1" required></label><button type="submit">បន្ថែម / Add</button></form>`;
+ const ct=hc?`<div class="scroll rep"><table style="min-width:0"><thead><tr><th>ពណ៌<span>Color</span></th><th class="n">កម្មង់<span>Order</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th></tr></thead><tbody>${x.clr.map(c=>{const q=issSum(x,t,c.n),r=c.q-q;return `<tr><td>${esc(c.n)}</td><td class="n">${c.q.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${bc(r)}">${fmN(r)}</td></tr>`}).join('')}</tbody></table></div>`:'';
+ const hist=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ពណ៌<span>Color</span></th><th>ទំហំ<span>Size</span></th><th class="n">ចំនួន<span>Qty</span></th><th></th></tr></thead><tbody>${I.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<tr><td>${e.date}</td><td>${esc(e.c||'—')}</td><td>${esc(e.s||'—')}</td><td class="n">${e.q.toLocaleString()}</td><td><button class="x" data-eid="${e.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">មិនទាន់មានកំណត់ត្រាបើក / No issues yet</td></tr>'}</tbody></table>`;
+ const dates=[...new Set(L.map(e=>e.date))].filter(d=>d!==gd).sort();
+ const val=(d,s)=>{const e=L.find(v=>v.date===d&&(v.s||'')===s);return e?e.q:''};
+ const inp=(d,z)=>`<td class="n"><input class="gi" type="number" min="0" data-t="${t}" data-d="${esc(d)}" data-s="${esc(z.n)}" value="${val(d||gd,z.n)}"></td>`;
+ const rt=d=>zs.reduce((a,z)=>a+(+val(d,z.n)||0),0).toLocaleString();
+ const grid=`<table style="min-width:0"><thead><tr><th>ថ្ងៃ<span>Date</span></th>${zs.map(th).join('')}<th class="n">សរុប<span>Total</span></th><th></th></tr></thead><tbody>${dates.map(d=>`<tr><td>${esc(d)}</td>${zs.map(z=>inp(d,z)).join('')}<td class="n rt">${rt(d)}</td><td><button type="button" class="x" data-del="${esc(d)}" data-t="${t}">លុប</button></td></tr>`).join('')}<tr class="ent"><td><input type="date" class="gdate" value="${gd}"></td>${zs.map(z=>inp('',z)).join('')}<td class="n rt">${rt(gd)}</td><td></td></tr></tbody></table>`;
+ return `<div class="tsecx"><h3 class="tbar ${t}">${t==='top'?'👕 អាវ / TOP':'👖 ខោ / PANTS'}</h3><div class="scroll rep">${summ}</div>
+ <h4 class="tsh">① បើកមកដេរ / Issue to sewing</h4>${iform}${ct}<div class="scroll rep">${hist}</div>
+ <h4 class="tsh">② ដេរបញ្ចប់ប្រចាំថ្ងៃ / Daily sewing</h4><div class="scroll rep">${grid}</div></div>`;
+}
 function renderIss(){
  const x=data.find(v=>v.id===issId);if(!x)return;
  const g=x.gt||'set',ts=g==='set'?['top','pants']:[g];
  $('it').textContent='ទិន្នន័យប្រចាំថ្ងៃ / Daily Entry — '+x.style+' (ក្រុម '+x.line+')';
- const hc=(x.clr||[]).length>0,ct=$('itype').value,cc=$('icolor').value;
- $('itype').innerHTML=ts.map(t=>`<option value="${t}">${tl[t]}</option>`).join('');
- $('icl').hidden=!hc;$('icolor').innerHTML=hc?x.clr.map(c=>`<option>${esc(c.n)}</option>`).join(''):'';
- if(ts.includes(ct))$('itype').value=ct;if(hc&&x.clr.some(c=>c.n===cc))$('icolor').value=cc;
- const hs=(x.sz||[]).length>0,cs=$('isize').value;
- const so='<option value="">ទាំងអស់ / All</option>'+(x.sz||[]).map(z=>`<option>${esc(z.n)}</option>`).join('');
- $('isize').innerHTML=so;$('isl').hidden=!hs;
- if(hs&&x.sz.some(z=>z.n===cs))$('isize').value=cs;
- const zs=x.sz||[],cqz=z=>(x.log||[]).filter(e=>e.s===z.n).reduce((a,e)=>a+e.q,0),isz=(t,z)=>(x.iss||[]).filter(e=>e.t===t&&e.s===z.n).reduce((a,e)=>a+e.q,0),fm=n=>n>0?n.toLocaleString():(n<0?'+'+(-n).toLocaleString():'✓');
- const rws=[{l:'កម្មង់',e:'Order',v:z=>z.q}];
- ts.forEach(t=>rws.push({l:tl[t]+' បើក',e:'Issued',v:z=>isz(t,z)},{l:tl[t]+' ខ្វះ',e:'Short',v:z=>z.q-isz(t,z),s:1}));
- const cell=(r,n)=>r.s?`<td class="n ${n>0?'bad':'ok'}">${fm(n)}</td>`:`<td class="n">${n.toLocaleString()}</td>`;
- $('isb').innerHTML=hs?`<table style="min-width:0"><thead><tr><th>ទំហំ<span>Size</span></th>${zs.map(z=>`<th class="n">${esc(z.n)}</th>`).join('')}<th class="n">សរុប<span>Total</span></th></tr></thead><tbody>${rws.map(r=>`<tr><td>${r.l}<span style="display:block;color:var(--mute);font-size:.72rem;font-weight:400">${r.e}</span></td>${zs.map(z=>cell(r,r.v(z))).join('')}${cell(r,zs.reduce((a,z)=>a+r.v(z),0))}</tr>`).join('')}</tbody></table>`:'';
- $('icb').innerHTML=hc?`<table style="min-width:0"><thead><tr><th>ពណ៌<span>Color</span></th>${ts.map(t=>`<th class="n">${tl[t]}<span>កម្មង់ / Order</span></th><th class="n">បើក<span>Issued</span></th><th class="n">ខ្វះ<span>Short</span></th>`).join('')}</tr></thead><tbody>${x.clr.map(c=>`<tr><td>${esc(c.n)}</td>${ts.map(t=>{const q=issSum(x,t,c.n),r=c.q-q;return `<td class="n">${c.q.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${r>0?'bad':'ok'}">${r>0?r.toLocaleString():(r<0?'+'+(-r).toLocaleString():'✓')}</td>`}).join('')}</tr>`).join('')}</tbody></table>`:'';
  $('isum').innerHTML=cqKpi(x)+ts.map(t=>{const q=issSum(x,t),r=x.oq-q;return `<div class="kpi"><small>${tl[t]} · កម្មង់ / Order ${x.oq.toLocaleString()}</small><b>${q.toLocaleString()}</b><small>បើកបាន / Issued</small><b class="${r>0?'bad':'ok'}" style="font-size:1.1rem">${r>0?'ខ្វះ / Short '+r.toLocaleString():(r<0?'លើស / Over '+(-r).toLocaleString():'គ្រប់ / Complete ✓')}</b></div>`}).join('');
- renderRep(x);
- $('ihist').innerHTML=(x.iss||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<tr><td>${e.date}</td><td>${tl[e.t]}</td><td>${esc(e.c||'—')}</td><td>${esc(e.s||'—')}</td><td class="n">${e.q.toLocaleString()}</td><td><button class="x" data-eid="${e.id}">លុប</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">មិនទាន់មានកំណត់ត្រាបើក / No issues yet</td></tr>';
+ $('tsec').innerHTML=ts.map(t=>secHtml(x,t)).join('');
 }
-$('if').addEventListener('submit',e=>{
- e.preventDefault();const x=data.find(v=>v.id===issId);if(!x)return;
- (x.iss=x.iss||[]).push({id:Date.now(),date:$('idate').value,t:$('itype').value,c:$('icl').hidden?'':$('icolor').value,s:$('isl').hidden?'':$('isize').value,q:+$('iqty').value});
- save();$('iqty').value='';renderIss();render();
+function afterLog(x){$('isum').firstElementChild.outerHTML=cqKpi(x);render()}
+function updRep(x,i){
+ const t=i.dataset.t,tr=i.closest('tr'),box=i.closest('.tsecx'),dt=dT(x);
+ tr.querySelector('.rt').textContent=[...tr.querySelectorAll('.gi')].reduce((a,n)=>a+(+n.value||0),0).toLocaleString();
+ const zs=(x.sz||[]).length?x.sz:[{n:'',q:x.oq}];
+ const set=(c,s,tx,r)=>{const el=box.querySelector(`[data-c="${c}"][data-s="${s}"]`);if(el){el.textContent=tx;if(r!=null)el.className='n '+(r>0?'bad':'ok')}};
+ zs.forEach(z=>{const d=(x.log||[]).filter(e=>(e.t||dt)===t&&(e.s||'')===z.n).reduce((a,e)=>a+e.q,0);set('done',z.n,d.toLocaleString());set('bal',z.n,fmN(z.q-d),z.q-d)});
+ const tc=cqT(x,t);set('done','*',tc.toLocaleString());set('bal','*',fmN(x.oq-tc),x.oq-tc);afterLog(x);
+}
+$('tsec').addEventListener('change',e=>{
+ const i=e.target,x=data.find(v=>v.id===issId);if(!x)return;
+ if(i.classList.contains('gdate')){if(i.value){gd=i.value;renderIss()}return}
+ if(!i.classList.contains('gi'))return;
+ const t=i.dataset.t,d=i.dataset.d||gd,s=i.dataset.s,q=+i.value||0,dt=dT(x);x.log=x.log||[];
+ const ex=x.log.find(v=>v.date===d&&(v.s||'')===s&&(v.t||dt)===t);
+ if(q>0){if(ex)ex.q=q;else x.log.push({id:Date.now()+x.log.length,date:d,s,q,t})}else if(ex)x.log=x.log.filter(v=>v!==ex);
+ save();updRep(x,i);
 });
-$('ihist').addEventListener('click',e=>{
- const id=+e.target.dataset.eid;if(!id)return;const x=data.find(v=>v.id===issId);if(!x)return;
- x.iss=(x.iss||[]).filter(v=>v.id!==id);save();renderIss();render();
+$('tsec').addEventListener('click',e=>{
+ const x=data.find(v=>v.id===issId);if(!x)return;
+ const dl=e.target.closest('button[data-del]'),ei=e.target.closest('button[data-eid]');
+ if(dl){if(!confirm('លុបថ្ងៃនេះ? / Delete this date?'))return;const dt=dT(x);x.log=(x.log||[]).filter(v=>!(v.date===dl.dataset.del&&(v.t||dt)===dl.dataset.t));save();renderIss();render()}
+ else if(ei){x.iss=(x.iss||[]).filter(v=>v.id!==+ei.dataset.eid);save();renderIss();render()}
+});
+$('tsec').addEventListener('submit',e=>{
+ const f=e.target.closest('form.isf');if(!f)return;e.preventDefault();
+ const x=data.find(v=>v.id===issId);if(!x)return;const el=f.elements;
+ (x.iss=x.iss||[]).push({id:Date.now(),date:el.date.value,t:f.dataset.t,c:el.color?el.color.value:'',s:el.size?el.size.value:'',q:+el.qty.value});
+ gd=el.date.value;save();renderIss();render();
 });
 $('iclose').onclick=()=>$('idlg').close();
 $('t0').onclick=()=>{view=false;render()};$('t1').onclick=()=>{view=true;render()};
@@ -237,17 +224,17 @@ function renderReport(){
  const f=$('rfrom').value,t=$('rto').value,fl=$('rln').value,m={};
  data.filter(x=>!fl||x.line===fl).forEach(x=>(x.log||[]).forEach(e=>{
   if((f&&e.date<f)||(t&&e.date>t))return;
-  const k=x.id+'|'+e.date,r=m[k]||(m[k]={d:e.date,x,s:{},q:0});r.q+=e.q;if(e.s)r.s[e.s]=(r.s[e.s]||0)+e.q}));
+  const t=e.t||dT(x),k=x.id+'|'+e.date+'|'+t,r=m[k]||(m[k]={d:e.date,x,t,s:{},q:0});r.q+=e.q;if(e.s)r.s[e.s]=(r.s[e.s]||0)+e.q}));
  repRows=Object.values(m).sort((a,b)=>a.d.localeCompare(b.d)||(+a.x.line)-(+b.x.line));
  const sz=r=>Object.keys(r.s).map(n=>n+':'+r.s[n]).join(' ');
- $('rrows').innerHTML=repRows.map(r=>`<tr><td>${r.d}</td><td>${esc(r.x.line)}</td><td>${esc(r.x.buyer)}</td><td>${esc(r.x.ut)}</td><td>${esc(r.x.style)}</td><td>${esc(sz(r))||'—'}</td><td class="n">${r.q.toLocaleString()}</td></tr>`).join('');
+ $('rrows').innerHTML=repRows.map(r=>`<tr><td>${r.d}</td><td>${esc(r.x.line)}</td><td>${esc(r.x.buyer)}</td><td>${esc(r.x.ut)}</td><td>${esc(r.x.style)}</td><td>${tl[r.t]}</td><td>${esc(sz(r))||'—'}</td><td class="n">${r.q.toLocaleString()}</td></tr>`).join('');
  $('rempty').hidden=repRows.length>0;
  $('r1').textContent=repRows.reduce((a,r)=>a+r.q,0).toLocaleString();$('r2').textContent=new Set(repRows.map(r=>r.x.id)).size;$('r3').textContent=new Set(repRows.map(r=>r.d)).size;
 }
 ['rfrom','rto','rln'].forEach(i=>$(i).addEventListener('change',renderReport));
 $('rcsv').onclick=()=>{
  const q=v=>'"'+String(v).replace(/"/g,'""')+'"',sz=r=>Object.keys(r.s).map(n=>n+':'+r.s[n]).join(' ');
- const l=[['Date','Line','Buyer','UT#','Style#','Sizes','Completed'].map(q).join(',')].concat(repRows.map(r=>[r.d,r.x.line,r.x.buyer,r.x.ut,r.x.style,sz(r),r.q].map(q).join(',')));
+ const l=[['Date','Line','Buyer','UT#','Style#','Type','Sizes','Completed'].map(q).join(',')].concat(repRows.map(r=>[r.d,r.x.line,r.x.buyer,r.x.ut,r.x.style,tl[r.t],sz(r),r.q].map(q).join(',')));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+l.join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='sewing-report-'+todayStr+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 $('rprint').onclick=()=>window.print();
