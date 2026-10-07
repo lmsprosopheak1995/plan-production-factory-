@@ -73,3 +73,6 @@ th.g{text-align:center;border-bottom:1px solid var(--line)}
 .rep tr.ent td{background:var(--run)}
 #idlg .rep input.gi{width:96px;text-align:right;padding:7px}
 #idlg .rep #gdate{width:160px;padding:7px}
+
+#erows input[type=date]{min-width:150px}
+@media print{.side,.filter,.kpis{display:none!important}.app{display:block}body{background:#fff;color:#000}}

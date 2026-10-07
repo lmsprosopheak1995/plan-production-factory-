@@ -12,7 +12,9 @@
 <button data-v="pv" class="on">📋 ផែនការ<span>Plan</span></button>
 <button data-v="dv">✏️ ទិន្នន័យប្រចាំថ្ងៃ<span>Daily Entry</span></button>
 <button data-v="fv">🧵 បើកក្រណាត់<span>Fabric Issue</span></button>
-<button data-v="lv">🏭 ក្រុមដេរ<span>Sewing Lines</span></button><div class="sync" id="sync"></div></nav>
+<button data-v="lv">🏭 ក្រុមដេរ<span>Sewing Lines</span></button><button data-v="rv">📊 របាយការណ៍<span>Report</span></button>
+<button data-v="ev">🚚 ថ្ងៃបញ្ចប់ / ចេញទំនិញ<span>Finish &amp; Ship Date</span></button>
+<div class="sync" id="sync"></div></nav>
 <main>
 <h1>ផែនការ និងទិន្នផលដេរ <span style="font-weight:400;color:var(--mute)">/ Sewing Plan & Output</span></h1>
 
@@ -109,6 +111,17 @@
 <div id="fempty" class="empty" hidden>គ្មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div></div>
 </section>
 <section id="lv" hidden><div class="lgrid" id="lgrid"></div></section>
+<section id="rv" hidden>
+<div class="filter"><label>ពីថ្ងៃ / From<input type="date" id="rfrom"></label><label>ដល់ថ្ងៃ / To<input type="date" id="rto"></label><label>ក្រុម / Line<select id="rln"></select></label><button type="button" id="rcsv">⬇ Excel (CSV)</button><button type="button" class="sec" id="rprint">🖨 បោះពុម្ព / Print</button></div>
+<div class="kpis"><div class="kpi"><small>បានដេរបញ្ចប់សរុប / Total Completed</small><b id="r1">0</b></div><div class="kpi"><small>ចំនួនកម្មង់ / Orders</small><b id="r2">0</b></div><div class="kpi"><small>ចំនួនថ្ងៃ / Days</small><b id="r3">0</b></div></div>
+<div class="panel scroll"><table><thead><tr><th>ថ្ងៃ<span>Date</span></th><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ទំហំ<span>Sizes</span></th><th class="n">បានបញ្ចប់<span>Completed</span></th></tr></thead><tbody id="rrows"></tbody></table>
+<div id="rempty" class="empty" hidden>គ្មានទិន្នន័យ / No data.</div></div>
+</section>
+<section id="ev" hidden>
+<div class="filter"><label>ក្រុម / Line<select id="eln"></select></label></div>
+<div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th>កំណត់ដឹក<span>D/D</span></th><th>ថ្ងៃ-ខែ-ឆ្នាំបញ្ចប់<span>Finish Date</span></th><th>ថ្ងៃចេញទំនិញ<span>Ship Date</span></th><th>លទ្ធផល<span>Result</span></th></tr></thead><tbody id="erows"></tbody></table>
+<div id="eempty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders.</div></div>
+</section>
 </main></div>
 <script src="config.js"></script>
 <script src="script.js"></script>
