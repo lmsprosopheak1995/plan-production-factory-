@@ -64,7 +64,7 @@ function render(){
   <td>${x.cd||''}</td><td>${x.od||''}</td><td>${x.dd||''}</td><td>${esc(x.rm)}</td>
   <td>${view?`<button class="a" data-a="restore" data-id="${x.id}">ស្តារ</button>`:`<button class="a" data-a="edit" data-id="${x.id}">កែ</button><button class="a" data-a="arch" data-id="${x.id}">ប័ណ្ណសារ</button>`}<button class="x" data-a="del" data-id="${x.id}">លុប</button></td></tr>`}).join('');
  $('empty').hidden=r.length>0;
- $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();fit();
+ $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();renderShip();fit();
 }
 $('f').addEventListener('submit',e=>{
  e.preventDefault();
@@ -169,7 +169,7 @@ $('drows').addEventListener('click',e=>{
 function fit(){}
 window.addEventListener('resize',fit);window.addEventListener('load',fit);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
-const views=['pv','dv','fv','lv','rv','ev'];
+const views=['pv','dv','fv','lv','rv','ev','sv'];
 function go(v){views.forEach(k=>$(k).hidden=k!==v);document.querySelectorAll('#side button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();window.scrollTo(0,0)}
 $('side').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)go(b.dataset.v)});
 const lnOpts='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
@@ -232,7 +232,7 @@ $('iclose').onclick=()=>$('idlg').close();
 $('t0').onclick=()=>{view=false;render()};$('t1').onclick=()=>{view=true;render()};
 $('pd').addEventListener('change',render);$('fl').addEventListener('change',render);
 let repRows=[];
-$('rfrom').value=addDays(todayStr,-6);$('rto').value=todayStr;$('rln').innerHTML=lnOpts;$('eln').innerHTML=lnOpts;
+$('rfrom').value=addDays(todayStr,-6);$('rto').value=todayStr;$('rln').innerHTML=lnOpts;$('eln').innerHTML=lnOpts;$('sln').innerHTML=lnOpts;
 function renderReport(){
  const f=$('rfrom').value,t=$('rto').value,fl=$('rln').value,m={};
  data.filter(x=>!fl||x.line===fl).forEach(x=>(x.log||[]).forEach(e=>{
@@ -256,16 +256,23 @@ function resTxt(x){
  const n=Math.round((new Date(x.sd)-new Date(x.dd))/864e5);
  return n>0?`<span class="bad">យឺត ${n} ថ្ងៃ / ${n}d late</span>`:'<span class="ok">ទាន់ពេល / On time ✓</span>';
 }
+const rowHead=x=>`<td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td class="n">${x.oq.toLocaleString()}</td>`;
 function renderEnd(){
  const fl=$('eln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
- $('erows').innerHTML=r.map(x=>`<tr data-id="${x.id}" class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td class="n">${x.oq.toLocaleString()}</td><td>${x.dd||'—'}</td><td><input type="date" data-k="fd" value="${x.fd||''}"></td><td><input type="date" data-k="sd" value="${x.sd||''}"></td><td class="res">${resTxt(x)}</td></tr>`).join('');
+ $('erows').innerHTML=r.map(x=>{const q=cqOf(x),d=q-x.oq;return `<tr data-id="${x.id}" class="${x.st}">${rowHead(x)}<td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${d>0?'+':''}${d.toLocaleString()}</td><td><input type="date" data-k="fd" value="${x.fd||''}"></td></tr>`}).join('');
  $('eempty').hidden=r.length>0;
 }
-$('eln').addEventListener('change',renderEnd);
-$('erows').addEventListener('change',e=>{
+function renderShip(){
+ const fl=$('sln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
+ $('srows').innerHTML=r.map(x=>`<tr data-id="${x.id}" class="${x.st}">${rowHead(x)}<td>${x.dd||'—'}</td><td><input type="date" data-k="sd" value="${x.sd||''}"></td><td class="res">${resTxt(x)}</td></tr>`).join('');
+ $('sempty').hidden=r.length>0;
+}
+$('eln').addEventListener('change',renderEnd);$('sln').addEventListener('change',renderShip);
+const dateEdit=e=>{
  const i=e.target,tr=i.closest('tr');if(!tr||!i.dataset.k)return;
  const x=data.find(v=>v.id===+tr.dataset.id);if(!x)return;
- x[i.dataset.k]=i.value;save();tr.querySelector('.res').innerHTML=resTxt(x);
-});
+ x[i.dataset.k]=i.value;save();const rs=tr.querySelector('.res');if(rs)rs.innerHTML=resTxt(x);
+};
+$('erows').addEventListener('change',dateEdit);$('srows').addEventListener('change',dateEdit);
 lineOpts();render();
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');
