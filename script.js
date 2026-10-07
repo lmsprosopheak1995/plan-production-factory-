@@ -49,7 +49,7 @@ const issSum=(x,t,c)=>(x.iss||[]).filter(e=>e.t===t&&(c==null||e.c===c)).reduce(
 const issCells=x=>{const g=x.gt||'set';return ['top','pants'].map(t=>{if(g!==t&&g!=='set')return '<td class="n">—</td><td class="n">—</td>';const q=issSum(x,t),r=x.oq-q;return `<td class="n">${q.toLocaleString()}</td><td class="n ${r>0?'bad':'ok'}">${r>0?r.toLocaleString():(r<0?'+'+(-r).toLocaleString():'✓')}</td>`}).join('')};
 function render(){
  const pd=$('pd').value||todayStr,fl=$('fl').value;
- const r=data.filter(x=>(!fl||x.line===fl)&&!!x.arch===view);
+ const r=data.filter(x=>(!fl||x.line===fl)&&!!x.arch===view&&mq(x,$('fq').value));
  $('c0').textContent='('+data.filter(x=>!x.arch).length+')';$('c1').textContent='('+data.filter(x=>x.arch).length+')';
  $('t0').classList.toggle('on',!view);$('t1').classList.toggle('on',view);
  const runSet=new Set();let daily=0,rem=0,late=0;
@@ -59,14 +59,14 @@ function render(){
   const isLate=x.st==='run'&&x.dd&&est!=='—'&&est>x.dd;
   if(x.st==='run'){runSet.add(x.line);daily+=x.dq;rem+=left;if(isLate)late++}
   return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${(x.clr||[]).map(c=>esc(c.n)).join(', ')||'—'}</td><td style="white-space:normal;min-width:110px">${(x.sz||[]).map(z=>esc(z.n)+':'+z.q).join(' ')||'—'}</td>
-  <td class="n">${x.oq.toLocaleString()}</td><td class="n">${x.iq.toLocaleString()}</td><td class="n">${cq.toLocaleString()}</td>
+  <td class="n">${x.oq.toLocaleString()}</td><td class="n">${x.iq.toLocaleString()}</td><td class="n">${cq.toLocaleString()}${(()=>{const p=x.oq?Math.min(100,Math.round(cq/x.oq*100)):0;return `<div class="pb ${p>=100?'ok':''}"><i style="width:${p}%"></i></div><small style="color:var(--mute)">${p}%</small>`})()}</td>
   <td class="n ${diff<0?'bad':'ok'}">${diff>0?'+':''}${diff.toLocaleString()}</td>
   ${issCells(x)}<td class="n">${x.wk||''}</td><td class="n">${x.dq}</td>
   <td class="n">${x.dq?Math.round(x.iq/x.dq+2)+' ថ្ងៃ':''}</td><td class="n">${x.st==='done'?'—':days}</td><td class="${isLate?'bad':''}">${est}${isLate?' ⚠':''}</td>
   <td>${x.cd||''}</td><td>${x.od||''}</td><td>${x.dd||''}</td><td>${esc(x.rm)}</td>
   <td>${view?`<button class="a" data-a="restore" data-id="${x.id}">ស្តារ</button>`:`<button class="a" data-a="edit" data-id="${x.id}">កែ</button><button class="a" data-a="arch" data-id="${x.id}">ប័ណ្ណសារ</button>`}<button class="x" data-a="del" data-id="${x.id}">លុប</button></td></tr>`}).join('');
  $('empty').hidden=r.length>0;
- $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();renderShip();renderCP();renderTotal();fit();
+ $('k1').textContent=runSet.size+' / 15';$('k2').textContent=daily.toLocaleString();$('k3').textContent=rem.toLocaleString();$('k4').textContent=late;renderDaily();renderFabric();renderLines();renderReport();renderEnd();renderShip();renderCP();renderTotal();renderDash();fit();
 }
 $('f').addEventListener('submit',e=>{
  e.preventDefault();
@@ -108,7 +108,7 @@ let gd=todayStr;
 const fmN=n=>n>0?n.toLocaleString():(n<0?'+'+(-n).toLocaleString():'✓');
 function renderDaily(){
  const d=$('dday').value||todayStr,fl=$('dln').value;
- const r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl));
+ const r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl)&&mq(x,$('dqs').value));
  let c=0,t=0,p=0;
  $('drows').innerHTML=r.map(x=>{
   const lc=(x.log||[]).filter(e=>e.date===d).reduce((a,e)=>a+e.q,0);
@@ -130,7 +130,7 @@ $('drows').addEventListener('click',e=>{
 function fit(){}
 window.addEventListener('resize',fit);window.addEventListener('load',fit);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
-const views=['pv','dv','fv','cv','lv','rv','tv','ev','sv'];
+const views=['hv','pv','dv','fv','cv','lv','rv','tv','ev','sv'];
 function go(v){views.forEach(k=>$(k).hidden=k!==v);document.querySelectorAll('#side button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));render();window.scrollTo(0,0)}
 $('side').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)go(b.dataset.v)});
 const lnOpts='<option value="">ទាំងអស់ / All</option>'+[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
@@ -138,7 +138,7 @@ $('fday').value=todayStr;$('fln').innerHTML=lnOpts;
 $('fday').addEventListener('change',renderFabric);$('fln').addEventListener('change',renderFabric);
 function openIss(id,d){issId=id;issMode='fabric';gd=d;renderIss();$('idlg').showModal()}
 function renderFabric(){
- const d=$('fday').value||todayStr,fl=$('fln').value,r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl));let t=0,p=0;
+ const d=$('fday').value||todayStr,fl=$('fln').value,r=data.filter(x=>!x.arch&&x.st==='run'&&(!fl||x.line===fl)&&mq(x,$('fqs').value));let t=0,p=0;
  $('frows').innerHTML=r.map(x=>{
   const g=x.gt||'set',sm=ty=>(x.iss||[]).filter(e=>e.date===d&&e.t===ty).reduce((a,e)=>a+e.q,0),it=sm('top'),ip=sm('pants');t+=it;p+=ip;
   return `<tr class="run"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.style)}</td><td class="n">${x.oq.toLocaleString()}</td>${issCells(x)}<td class="n">${g==='pants'?'—':(it||'—')}</td><td class="n">${g==='top'?'—':(ip||'—')}</td><td><button class="a" data-id="${x.id}">បើក / Issue</button></td></tr>`}).join('');
@@ -317,7 +317,7 @@ function vsUpd(x,box,t){
 
 /* --- Cutting Piece list --- */
 function renderCP(){
- const fl=$('cln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
+ const fl=$('cln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl)&&mq(x,$('cqs').value));
  $('cprows').innerHTML=r.flatMap(x=>gtOf(x).map(t=>{const c=cutT(x,t),q=tcpS(x,t),d=q-x.oq;
   return `<tr class="${x.st}"><td>${esc(x.line)}</td><td>${esc(x.buyer)}</td><td>${esc(x.ut)}</td><td>${esc(x.style)}</td><td>${tl[t]}</td><td class="n">${x.oq.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td class="n">${q.toLocaleString()}</td><td class="n ${d<0?'bad':'ok'}">${fS(d)}</td><td><button class="a" data-cp="${x.id}" data-t="${t}">បញ្ចូល / Enter</button></td></tr>`})).join('');
  $('cpempty').hidden=r.length>0;
@@ -439,12 +439,87 @@ $('ef').addEventListener('submit',e=>{
  $('eszg').querySelectorAll('input').forEach(i=>{const s=i.dataset.s,q=+i.value||0;
   const ex=x[key].find(v=>v.date===d&&(v.s||'')===s&&(v.t||dt)===t);
   if(q>0){if(ex)ex.q=q;else x[key].push({id:Date.now()+x[key].length,date:d,s,q,t})}else if(ex)x[key]=x[key].filter(v=>v!==ex)});
- save();gd=d;cpd=d;$('edlg').close();
+ save();gd=d;cpd=d;$('edlg').close();toast('✓ រក្សាទុករួច / Saved');
  if(em.kind==='cp')renderCPd();else renderIss();
  render();
 });
 $('tsec').addEventListener('click',e=>{const b=e.target.closest('button[data-add],button[data-edit]');if(!b)return;const x=data.find(v=>v.id===issId);if(!x)return;openEntry('sew',x,b.dataset.add||b.dataset.t,b.dataset.edit||gd)});
 $('cpsec').addEventListener('click',e=>{const b=e.target.closest('button[data-add],button[data-edit]');if(!b)return;const x=data.find(v=>v.id===cpId);if(!x)return;openEntry('cp',x,b.dataset.add||b.dataset.t,b.dataset.edit||cpd)});
 
-lineOpts();render();
+/* ===== Dashboard / Alerts / Quick Entry / Search ===== */
+const mq=(x,q)=>{q=(q||'').trim().toLowerCase();return !q||[x.buyer,x.ut,x.style,x.rm,x.line,(x.clr||[]).map(c=>c.n).join(' ')].join(' ').toLowerCase().includes(q)};
+function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>{t.hidden=true},2200)}
+const todayOfT=(x,t)=>(x.log||[]).filter(e=>e.date===todayStr&&(e.t||dT(x))===t).reduce((a,e)=>a+e.q,0);
+const hasToday=l=>data.some(x=>!x.arch&&x.st==='run'&&x.line===l&&(x.log||[]).some(e=>e.date===todayStr));
+function renderDash(){
+ const run=data.filter(x=>!x.arch&&x.st==='run'),L=[...Array(15)].map((_,i)=>String(i+1));
+ const act=L.filter(l=>run.some(x=>x.line===l)),idle=L.filter(l=>!act.includes(l));
+ const live=data.filter(x=>!x.arch);
+ const tt=live.reduce((a,x)=>a+todayOfT(x,'top'),0),tp=live.reduce((a,x)=>a+todayOfT(x,'pants'),0);
+ const al=[];
+ run.forEach(x=>{
+  const left=Math.max(0,x.iq-cqOf(x));if(!x.dd||!left)return;
+  const who=`ក្រុម ${esc(x.line)} · ${esc(x.buyer)} ${esc(x.style)}`;
+  if(x.dd<todayStr)al.push({c:'bad',i:'⛔',l:x.line,t:`${who} — ហួសថ្ងៃដឹកជញ្ជូន ${x.dd} · នៅខ្វះ ${left.toLocaleString()}`,k:'late'});
+  else if(x.dq){const est=addDays(todayStr,Math.ceil(left/x.dq));if(est>x.dd)al.push({c:'warn',i:'⚠️',l:x.line,t:`${who} — ប៉ាន់ស្មានបញ្ចប់ ${est} យឺតជាងកំណត់ដឹក ${x.dd}`,k:'late'})}
+ });
+ const miss=act.filter(l=>!hasToday(l));
+ miss.forEach(l=>al.push({c:'warn',i:'📝',q:l,t:`ក្រុម ${l} មិនទាន់បញ្ចូលទិន្នផលថ្ងៃនេះ`,k:'miss'}));
+ al.sort((a,b)=>(a.c==='bad'?0:1)-(b.c==='bad'?0:1));
+ $('hk1').textContent=act.length+' / 15';$('hk2').textContent=tt.toLocaleString();$('hk3').textContent=tp.toLocaleString();
+ $('hk4').textContent=al.filter(a=>a.k==='late').length;$('hk5').textContent=miss.length;
+ $('hk4').className=al.some(a=>a.k==='late')?'bad':'ok';$('hk5').className=miss.length?'bad':'ok';
+ const b=$('bdg');b.textContent=al.length;b.hidden=!al.length;
+ $('alerts').innerHTML=al.length?al.map(a=>`<div class="al ${a.c}"><span>${a.i} ${a.t}</span>${a.q?`<button type="button" class="a" data-q="${a.q}">⚡ បញ្ចូល / Enter</button>`:`<button type="button" class="a" data-gl="${esc(a.l)}">មើល / View</button>`}</div>`).join(''):'<div class="al ok">✅ គ្មានបញ្ហា / All good</div>';
+ $('hgrid').innerHTML=act.map(l=>{
+  const os=run.filter(x=>x.line===l),done=hasToday(l);
+  const t1=os.reduce((a,x)=>a+todayOfT(x,'top'),0),t2=os.reduce((a,x)=>a+todayOfT(x,'pants'),0);
+  const tgt=os.reduce((a,x)=>a+(x.dq||0),0),got=os.reduce((a,x)=>a+Math.max(todayOfT(x,'top'),todayOfT(x,'pants')),0);
+  const p=tgt?Math.min(100,Math.round(got/tgt*100)):0;
+  return `<div class="lc on"><h3>ក្រុម ${l} / Line ${l}<small class="${done?'ok':'bad'}">${done?'✓ បានបញ្ចូលហើយ':'មិនទាន់បញ្ចូល'}</small></h3>
+  <div class="lo">${os.map(x=>esc(x.buyer)+' · '+esc(x.style)).join('<br>')}</div>
+  <dl><dt>អាវ / Top</dt><dd>${t1.toLocaleString()}</dd><dt>ខោ / Pants</dt><dd>${t2.toLocaleString()}</dd><dt>គោលដៅ/ថ្ងៃ / Target</dt><dd>${tgt.toLocaleString()}</dd></dl>
+  <div class="pb ${p>=100?'ok':''}"><i style="width:${p}%"></i></div><small style="color:var(--mute)">${p}%</small>
+  <div style="margin-top:6px"><button type="button" class="a" data-q="${l}">⚡ បញ្ចូល / Enter</button></div></div>`}).join('')||'<div class="empty">មិនទាន់មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div>';
+ $('hidle').textContent=idle.length?'ក្រុមទំនេរ / Idle lines: '+idle.join(', '):'';
+}
+$('hgrid').addEventListener('click',e=>{const b=e.target.closest('button[data-q]');if(b)openQ(b.dataset.q)});
+$('alerts').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.q)openQ(b.dataset.q);else if(b.dataset.gl){$('fl').value=b.dataset.gl;go('pv')}});
+
+/* --- Quick entry --- */
+function fillQ(){
+ const l=$('qline').value,d=$('qdate').value;
+ const os=data.filter(x=>!x.arch&&x.st==='run'&&x.line===l);
+ $('qbody').innerHTML=os.length?os.map(x=>gtOf(x).map(t=>{
+  const L=(x.log||[]).filter(e=>e.date===d&&(e.t||dT(x))===t),has=(x.sz||[]).length>0;
+  return `<div class="qb"><h3 class="tbar ${t}">${esc(x.buyer)} · ${esc(x.style)} · ${tl[t]}</h3><div class="szg">${zsOf(x).map(z=>{const e=L.find(v=>(v.s||'')===z.n);return `<label>${has?esc(z.n):'ចំនួន / Qty'}<input type="number" inputmode="numeric" min="0" data-id="${x.id}" data-t="${t}" data-s="${esc(z.n)}" value="${e?e.q:''}"></label>`}).join('')}</div></div>`}).join('')).join(''):'<div class="empty">ក្រុមនេះគ្មានកម្មង់កំពុងផលិតទេ។ / No running orders on this line.</div>';
+}
+function openQ(line){
+ const run=[...new Set(data.filter(x=>!x.arch&&x.st==='run').map(x=>x.line))];
+ $('qline').innerHTML=[...Array(15)].map((_,i)=>`<option>${i+1}</option>`).join('');
+ const miss=run.filter(l=>!hasToday(l)).sort((a,b)=>a-b)[0];
+ $('qline').value=line||miss||run[0]||'1';
+ $('qdate').value=todayStr;fillQ();$('qdlg').showModal();
+ const f=$('qbody').querySelector('input');if(f)f.focus();
+}
+$('qline').addEventListener('change',fillQ);$('qdate').addEventListener('change',fillQ);
+$('qcancel').onclick=()=>$('qdlg').close();
+$('qopen').onclick=()=>openQ();$('fab').onclick=()=>openQ();
+$('qf').addEventListener('submit',e=>{
+ e.preventDefault();const d=$('qdate').value;if(!d)return;
+ $('qbody').querySelectorAll('input').forEach(i=>{
+  const x=data.find(v=>v.id===+i.dataset.id);if(!x)return;
+  const t=i.dataset.t,s=i.dataset.s,q=+i.value||0,dt=dT(x);x.log=x.log||[];
+  const ex=x.log.find(v=>v.date===d&&(v.s||'')===s&&(v.t||dt)===t);
+  if(q>0){if(ex)ex.q=q;else x.log.push({id:Date.now()+x.log.length+Math.floor(Math.random()*1000),date:d,s,q,t})}else if(ex)x.log=x.log.filter(v=>v!==ex)});
+ save();$('qdlg').close();render();toast('✓ រក្សាទុករួច / Saved');
+});
+
+/* --- Search boxes --- */
+$('fq').addEventListener('input',render);
+$('dqs').addEventListener('input',renderDaily);
+$('fqs').addEventListener('input',renderFabric);
+$('cqs').addEventListener('input',renderCP);
+
+lineOpts();go('hv');
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');

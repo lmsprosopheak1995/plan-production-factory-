@@ -9,7 +9,8 @@
 </head>
 <body>
 <div class="app"><nav class="side" id="side"><div class="brand">🧵 ដេរ / Sewing</div>
-<button data-v="pv" class="on">📋 ផែនការ<span>Plan</span></button>
+<button data-v="hv" class="on">🏠 ទិដ្ឋភាពរួម<span>Dashboard</span><em id="bdg" class="bdg" hidden></em></button>
+<button data-v="pv">📋 ផែនការ<span>Plan</span></button>
 <button data-v="dv">✏️ ទិន្នន័យប្រចាំថ្ងៃ<span>Daily Entry</span></button>
 <button data-v="fv">🧵 បើកក្រណាត់<span>Fabric Issue</span></button>
 <button data-v="cv">✂️ ទទួលបំណែកកាត់<span>Cutting Piece</span></button>
@@ -21,11 +22,19 @@
 <main>
 <h1>ផែនការ និងទិន្នផលដេរ <span style="font-weight:400;color:var(--mute)">/ Sewing Plan & Output</span></h1>
 
-<section id="pv">
+<section id="hv">
+<div class="filter"><button type="button" id="qopen" class="big">⚡ បញ្ចូលទិន្នផលរហ័ស / Quick Entry</button></div>
+<div class="kpis"><div class="kpi"><small>ក្រុមកំពុងផលិត / Lines Running</small><b id="hk1">0</b></div><div class="kpi"><small>ដេរថ្ងៃនេះ អាវ / Top Today</small><b id="hk2">0</b></div><div class="kpi"><small>ដេរថ្ងៃនេះ ខោ / Pants Today</small><b id="hk3">0</b></div><div class="kpi"><small>កម្មង់ហួសកំណត់ / Late Orders</small><b id="hk4">0</b></div><div class="kpi"><small>ក្រុមមិនទាន់បញ្ចូល / Not Entered</small><b id="hk5">0</b></div></div>
+<div class="panel"><h2>🔔 ការជូនដំណឹង / Alerts</h2><div id="alerts"></div></div>
+<h2>🏭 ក្រុមកំពុងដេរ / Running Lines</h2>
+<div class="lgrid" id="hgrid"></div>
+<div class="empty" id="hidle"></div>
+</section>
+<section id="pv" hidden>
 <div class="filter">
 <button type="button" id="ab">+ បញ្ចូលកម្មង់ / Add Order</button>
 <label>ថ្ងៃផែនការ / Plan Date<input type="date" id="pd"></label>
-<label>ក្រុម / Line<select id="fl"><option value="">ទាំងអស់ / All</option></select></label>
+<label>ក្រុម / Line<select id="fl"><option value="">ទាំងអស់ / All</option></select></label><label>ស្វែងរក / Search<input type="search" id="fq" placeholder="អ្នកទិញ / កុងត្រា / ម៉ូដែល / ពណ៌"></label>
 </div>
 
 <div class="kpis">
@@ -79,7 +88,7 @@
 <section id="dv" hidden>
 <div class="filter">
 <label>ថ្ងៃ / Date<input type="date" id="dday"></label>
-<label>ក្រុម / Line<select id="dln"></select></label>
+<label>ក្រុម / Line<select id="dln"></select></label><label>ស្វែងរក / Search<input type="search" id="dqs" placeholder="អ្នកទិញ / កុងត្រា / ម៉ូដែល / ពណ៌"></label>
 </div>
 <div class="kpis">
 <div class="kpi"><small>បានដេរបញ្ចប់ថ្ងៃនេះ / Completed Today</small><b id="d1">0</b></div>
@@ -95,7 +104,7 @@
 <div id="dempty" class="empty" hidden>គ្មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div></div>
 </section>
 <section id="fv" hidden>
-<div class="filter"><label>ថ្ងៃ / Date<input type="date" id="fday"></label><label>ក្រុម / Line<select id="fln"></select></label></div>
+<div class="filter"><label>ថ្ងៃ / Date<input type="date" id="fday"></label><label>ក្រុម / Line<select id="fln"></select></label><label>ស្វែងរក / Search<input type="search" id="fqs" placeholder="អ្នកទិញ / កុងត្រា / ម៉ូដែល / ពណ៌"></label></div>
 <div class="kpis"><div class="kpi"><small>បើកអាវថ្ងៃនេះ / Top Issued Today</small><b id="f1">0</b></div><div class="kpi"><small>បើកខោថ្ងៃនេះ / Pants Issued Today</small><b id="f2">0</b></div></div>
 <div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">អាវបើក<span>Top Issued</span></th><th class="n">អាវខ្វះ<span>Top Short</span></th><th class="n">ខោបើក<span>Pants Issued</span></th><th class="n">ខោខ្វះ<span>Pants Short</span></th><th class="n">អាវថ្ងៃនេះ<span>Top Today</span></th><th class="n">ខោថ្ងៃនេះ<span>Pants Today</span></th><th></th></tr></thead><tbody id="frows"></tbody></table>
 <div id="fempty" class="empty" hidden>គ្មានកម្មង់កំពុងផលិតទេ។ / No running orders.</div></div>
@@ -108,7 +117,7 @@
 <div id="rempty" class="empty" hidden>គ្មានទិន្នន័យ / No data.</div></div>
 </section>
 <section id="cv" hidden>
-<div class="filter"><label>ក្រុម / Line<select id="cln"></select></label></div>
+<div class="filter"><label>ក្រុម / Line<select id="cln"></select></label><label>ស្វែងរក / Search<input type="search" id="cqs" placeholder="អ្នកទិញ / កុងត្រា / ម៉ូដែល / ពណ៌"></label></div>
 <div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th>ប្រភេទ<span>Type</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th class="n">កាត់<span>Cutting</span></th><th class="n">ទទួលបំណែក<span>Take Cutting Piece</span></th><th class="n">ខ្វះ/លើស<span>Balance</span></th><th></th></tr></thead><tbody id="cprows"></tbody></table>
 <div id="cpempty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders.</div></div>
 </section>
@@ -137,6 +146,12 @@
 <div style="text-align:right;margin-top:12px"><button type="button" class="sec" id="cpclose">បិទ / Close</button></div></dialog>
 <dialog id="edlg"><h2 id="eht"></h2><form id="ef"><label>ថ្ងៃ / Date<input type="date" id="edate" required></label><div class="szg" id="eszg"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="sec" id="ecancel">បោះបង់ / Cancel</button><button type="submit">រក្សាទុក / Save</button></div></form></dialog>
+<dialog id="qdlg"><h2>⚡ បញ្ចូលទិន្នផលរហ័ស / Quick Entry</h2>
+<form id="qf"><div class="qtop"><label>ក្រុម / Line<select id="qline"></select></label><label>ថ្ងៃ / Date<input type="date" id="qdate" required></label></div>
+<div id="qbody"></div>
+<div class="qact"><button type="button" class="sec" id="qcancel">បោះបង់ / Cancel</button><button type="submit">រក្សាទុក / Save</button></div></form></dialog>
+<button type="button" id="fab">⚡ បញ្ចូលរហ័ស</button>
+<div id="toast" class="toast" hidden></div>
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>
