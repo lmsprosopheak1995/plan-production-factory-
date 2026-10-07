@@ -125,10 +125,14 @@
 </section>
 <section id="sv" hidden>
 <div class="filter"><label>ក្រុម / Line<select id="sln"></select></label></div>
-<div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th>កំណត់ដឹក<span>D/D</span></th><th>ថ្ងៃចេញទំនិញ<span>Ship Date</span></th><th>លទ្ធផល<span>Result</span></th></tr></thead><tbody id="srows"></tbody></table>
+<div class="panel scroll"><table><thead><tr><th>ក្រុម<span>Line</span></th><th>អ្នកទិញ<span>Buyer</span></th><th>កុងត្រា<span>UT#</span></th><th>ម៉ូដែល<span>Style#</span></th><th class="n">ចំនួនកម្មង់<span>Order Qty</span></th><th>កំណត់ដឹក<span>D/D</span></th><th class="n">ចេញរួច<span>Shipped</span></th><th class="n">នៅសល់<span>Remaining</span></th><th class="n">ចំនួនវគ្គ<span>Batches</span></th><th>ថ្ងៃចេញទំនិញ<span>Ship Date</span></th><th>លទ្ធផល<span>Result</span></th><th></th></tr></thead><tbody id="srows"></tbody></table>
 <div id="sempty" class="empty" hidden>គ្មានកម្មង់ទេ។ / No orders.</div></div>
 </section>
 </main></div>
+<dialog id="shdlg"><h2 id="sht"></h2><div id="shsum" class="kpis"></div>
+<form id="shf"><label>ថ្ងៃ / Date<input type="date" id="shd" required></label><label>ចំនួនចេញ / Qty<input type="number" id="shq" min="1" required></label><label>កំណត់សម្គាល់ / Note<input id="shn"></label><button type="submit">បន្ថែមវគ្គ / Add batch</button></form>
+<div class="scroll" style="margin:12px 0"><table style="min-width:0"><thead><tr><th>វគ្គ<span>Batch</span></th><th>ថ្ងៃ<span>Date</span></th><th class="n">ចំនួន<span>Qty</span></th><th class="n">ចេញសរុប<span>Cumulative</span></th><th>កំណត់សម្គាល់<span>Note</span></th><th></th></tr></thead><tbody id="shb"></tbody></table></div>
+<div style="text-align:right"><button type="button" class="sec" id="shc">បិទ / Close</button></div></dialog>
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>

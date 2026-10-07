@@ -69,7 +69,7 @@ function render(){
 $('f').addEventListener('submit',e=>{
  e.preventDefault();
  const n=i=>+$(i).value||0;
- const old=editId?data.find(v=>v.id===editId):{};const rec={id:editId||Date.now(),arch:false,gt:$('gt').value,clr:readClr(),sz:readSz(),iss:old.iss||[],fd:old.fd||'',sd:old.sd||'',cq:n('cq'),log:old.log||[],line:$('line').value.trim(),buyer:$('buyer').value.trim(),ut:$('ut').value.trim(),style:$('style').value.trim(),
+ const old=editId?data.find(v=>v.id===editId):{};const rec={id:editId||Date.now(),arch:false,gt:$('gt').value,clr:readClr(),sz:readSz(),iss:old.iss||[],fd:old.fd||'',sd:old.sd||'',ship:old.ship||[],cq:n('cq'),log:old.log||[],line:$('line').value.trim(),buyer:$('buyer').value.trim(),ut:$('ut').value.trim(),style:$('style').value.trim(),
   oq:n('oq'),iq:n('iq'),wk:n('wk'),dq:n('dq'),cd:$('cd').value,od:$('od').value,dd:$('dd').value,st:$('st').value,rm:$('rm').value.trim()};
  if(editId){const i=data.findIndex(x=>x.id===editId);rec.arch=data[i].arch;data[i]=rec}else data.push(rec);
  save();stopEdit();lineOpts();render();
@@ -264,7 +264,7 @@ function renderEnd(){
 }
 function renderShip(){
  const fl=$('sln').value,r=data.filter(x=>!x.arch&&(!fl||x.line===fl));
- $('srows').innerHTML=r.map(x=>`<tr data-id="${x.id}" class="${x.st}">${rowHead(x)}<td>${x.dd||'—'}</td><td><input type="date" data-k="sd" value="${x.sd||''}"></td><td class="res">${resTxt(x)}</td></tr>`).join('');
+ $('srows').innerHTML=r.map(x=>{const t=shQ(x),rm=x.oq-t;return `<tr data-id="${x.id}" class="${x.st}">${rowHead(x)}<td>${x.dd||'—'}</td><td class="n">${t.toLocaleString()}</td><td class="n ${rm>0?'bad':'ok'}">${fmN(rm)}</td><td class="n">${(x.ship||[]).length}</td><td><input type="date" data-k="sd" value="${x.sd||''}"></td><td class="res">${resTxt(x)}</td><td><button class="a" data-sh="${x.id}">ចេញទំនិញ / Ship</button></td></tr>`}).join('');
  $('sempty').hidden=r.length>0;
 }
 $('eln').addEventListener('change',renderEnd);$('sln').addEventListener('change',renderShip);
@@ -274,5 +274,27 @@ const dateEdit=e=>{
  x[i.dataset.k]=i.value;save();const rs=tr.querySelector('.res');if(rs)rs.innerHTML=resTxt(x);
 };
 $('erows').addEventListener('change',dateEdit);$('srows').addEventListener('change',dateEdit);
+let shId=null;
+const shQ=x=>(x.ship||[]).reduce((a,e)=>a+e.q,0);
+function renderSh(){
+ const x=data.find(v=>v.id===shId);if(!x)return;
+ const L=(x.ship||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id),t=shQ(x),r=x.oq-t;
+ $('sht').textContent='ចេញទំនិញតាមវគ្គ / Shipments — '+x.style+' (ក្រុម '+x.line+')';
+ $('shsum').innerHTML=`<div class="kpi"><small>ចំនួនកម្មង់ / Order</small><b>${x.oq.toLocaleString()}</b></div><div class="kpi"><small>ចេញរួច / Shipped</small><b>${t.toLocaleString()}</b></div><div class="kpi"><small>នៅសល់ / Remaining</small><b class="${r>0?'bad':'ok'}">${fmN(r)}</b></div>`;
+ let c=0;
+ $('shb').innerHTML=L.map((e,i)=>{c+=e.q;return `<tr><td>${i+1}</td><td>${e.date}</td><td class="n">${e.q.toLocaleString()}</td><td class="n">${c.toLocaleString()}</td><td>${esc(e.n||'')}</td><td><button class="x" data-sid="${e.id}">លុប</button></td></tr>`}).join('')||'<tr><td colspan="6" class="empty">មិនទាន់មានវគ្គចេញ / No shipments yet</td></tr>';
+}
+const syncSd=x=>{x.sd=(x.ship||[]).reduce((m,e)=>e.date>m?e.date:m,'')};
+$('srows').addEventListener('click',e=>{const b=e.target.closest('button[data-sh]');if(!b)return;shId=+b.dataset.sh;$('shd').value=todayStr;renderSh();$('shdlg').showModal()});
+$('shf').addEventListener('submit',e=>{
+ e.preventDefault();const x=data.find(v=>v.id===shId);if(!x)return;
+ (x.ship=x.ship||[]).push({id:Date.now(),date:$('shd').value,q:+$('shq').value,n:$('shn').value.trim()});
+ syncSd(x);save();$('shq').value='';$('shn').value='';renderSh();render();
+});
+$('shb').addEventListener('click',e=>{
+ const id=+e.target.dataset.sid;if(!id)return;const x=data.find(v=>v.id===shId);if(!x)return;
+ x.ship=(x.ship||[]).filter(v=>v.id!==id);if(x.ship.length)syncSd(x);else x.sd='';save();renderSh();render();
+});
+$('shc').onclick=()=>$('shdlg').close();
 lineOpts();render();
 if(cloud){setSync('☁ …');pull(true);setInterval(()=>pull(),30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}else setSync('💾 Local only');
